@@ -2,7 +2,7 @@
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String
-from geometry_msgs.msg import Twist
+from geometry_msgs.msg import Pose
 
 from grbl_ros.grbl_device import grbl
 
@@ -11,9 +11,9 @@ grbl_node_name = 'cnc_001'
 class GRBLInterface(Node):
     def __init__(self):
         super().__init__(grbl_node_name)
-        self.pub_pos_     = self.create_publisher(Twist, grbl_node_name + '/position', 10)
+        self.pub_pos_     = self.create_publisher(Pose, grbl_node_name + '/position', 10)
         self.pub_status_  = self.create_publisher(String, grbl_node_name + '/status', 10)
-        self.sub_cmd_ = self.create_subscription(Twist, grbl_node_name + '/cmd' , self.cmdCallback, 10)
+        self.sub_cmd_ = self.create_subscription(Pose, grbl_node_name + '/cmd' , self.cmdCallback, 10)
         self.sub_stop_ = self.create_subscription(String, grbl_node_name + '/stop', self.stopCallback, 10)
         self.sub_cmd_ # prevent unused variable warning
         self.sub_stop_ # prevent unused variable warning
@@ -61,13 +61,24 @@ class GRBLInterface(Node):
                                steps_x.get_parameter_value().integer_value,
                                steps_y.get_parameter_value().integer_value,
                                steps_z.get_parameter_value().integer_value)
+        self.refreshStatus()
+        self.refreshPosition()
 
-    def cmdCallback(msg):
-        self.get_logger().info("received msg: " + str(msg))
-        print(msg.linear.x, msg.linear.y, msg.linear.z)
-        grbl_obj.moveTo(msg.linear.x, msg.linear.y, msg.linear.z, blockUntilComplete=True)
+    def refreshStatus(self):
+        status = self.grbl_obj.getStatus()
+        ros_status = String()
+        ros_status.data = str(status)
+        self.pub_status_.publish(ros_status)
 
-    def stopCallback(msg):
+    def refreshPosition(self):
+        pose = self.grbl_obj.getPose()
+        self.pub_pos_.publish(pose)
+
+    def cmdCallback(self, msg):
+        self.get_logger().info("received msg")
+        self.grbl_obj.moveTo(msg.position.x, msg.position.y, msg.position.z, blockUntilComplete=True)
+
+    def stopCallback(self, msg):
         #stop steppers
         if   msg.data == 's':
             grbl_obj.disableSteppers()
@@ -78,14 +89,6 @@ class GRBLInterface(Node):
 def main():
     rclpy.init()
     interface = GRBLInterface()
-    status     = interface.grbl_obj.getStatus()
-    pose       = interface.grbl_obj.getTwist()
-    print(str(status))
-    print(pose)
-    ros_status = String()
-    ros_status.data = str(status)
-    interface.pub_pos_.publish(pose)
-    interface.pub_status_.publish(ros_status)
     rclpy.spin(interface)
 
 if __name__ == '__main__':
