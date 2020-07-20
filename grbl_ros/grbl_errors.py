@@ -1,0 +1,19 @@
+from enum import Enum
+
+'''
+enum class for grbl error list
+http://domoticx.com/cnc-machine-grbl-error-list/
+'''
+class GRBLSTATUS(Enum):
+    NO_ERROR              = 0  # 
+    MISSING_LETTER        = 1  # G-code words consist of a letter and a value. Letter not found
+    INVALID_NUMERIC       = 2  # Numeric value format is not valid or missing an expected value
+    COMMAND_NOT_SUPPORTED = 3  # Grbl '$' system command was not recognized or supported
+    NEGATIVE_POSITION     = 4  # Negtaive value received for an expected positive value
+    DISABLED_HOMING       = 5  # Homing cycle is not enabled via settings
+    MIN_STEP_TOO_SMALL    = 6  # must be larger than 3usec
+    EEPROM_READ_FAIL      = 7  # EEPROM read failed. Reset and restored to default values
+    GRBL_NOT_IDLE         = 8  # Grbl '$' cmd cannot be used unless Grbl is IDLE
+    LOCKED_OUT            = 9  # G-code locked out during alarm or jog state
+    HOMING_NOT_ENABLED    = 10 # Soft limits cannot be enabled without homing also enabled
+    MAX_CHARS_PER_LINE    = 11 #
