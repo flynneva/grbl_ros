@@ -62,9 +62,9 @@ class grbl:
         self.limits       =   [self.x_max, self.y_max, self.z_max]	
         # initiates the serial port
         self.s = serial.Serial(self.port, self.baudrate)
+        
         # set movement to Absolute coordinates
-        if (self.s.is_open):
-            self.ensureMovementMode(True)
+        self.ensureMovementMode(True)
         # start homing procedure
         # TODO(flynneva): should this be done at startup?
         # should probably be configurable by user
@@ -80,7 +80,7 @@ class grbl:
     def gcode(self, gcode):
         # TODO(evanflynn): need to add some input checking
         self.s.write(str.encode(gcode + '\r\n'))
-        self.s.readline()
+        return self.decodeStatus(self.s.readline().decode('utf-8').strip())
     
     def getPose(self):
         pose = Pose()
@@ -102,27 +102,28 @@ class grbl:
     def home(self):
     	# initiates the homing procedure
     	self.s.write(b"$H\n")
-    	self.s.readline()
+    	return self.s.readline().decode('utf-8').strip()
     
     def clearAlarm(self):
-    	self.s.write(b"$X\n")
-    
+        self.s.write(b"$X\n")
+        return self.s.readline().decode('utf-8').strip()
+
     def enableSteppers(self):
-    	# enable the stepper motors
-    	try:
-    		self.s.write(b"M17\n")
-    		self.s.readline()
-    	except:
-    		print("Serial port unavailable")	
+        # enable the stepper motors
+        try:
+            self.s.write(b"M17\n")
+            return self.s.readline().decode('utf-8').strip()
+        except:
+            return "Serial port unavailable"	
     
     def disableSteppers(self):
-    	# Disable the stepper motors
-    	try:
-    		self.s.write(b"M18\n")
-    		self.s.readline()
-    	except:
-    		print("Serial port unavailable")
-    
+        try:
+            self.s.write(b"M18\n")
+            return self.s.readline().decode('utf-8').strip()
+        except:
+            return "Serial port unavailable"
+   
+    # TODO(flynneva): migrate to just pose msg arg to cover higher order axis machines too
     def moveTo(self, x=None, y=None, z=None, speed=None, blockUntilComplete=True):
     	""" move to an absolute position, and return when movement completes """
     	if not self.idle: return
@@ -131,7 +132,7 @@ class grbl:
     	
     	self.ensureMovementMode(absoluteMode = True)
     	
-    	gcode = '$G0'
+    	gcode = 'G0'
     	letters = 'XYZ'
     	pos = (x, y, z)
     	newpos = list(self.pos)
@@ -146,14 +147,13 @@ class grbl:
     			gcode += ' ' + letters[i] + str(pos[i])
     			newpos[i] = pos[i]
     
-    	gcode += ' F' + str(speed)
-    	gcode += '\r\n'
+    	#gcode += ' F' + str(speed)
+    	gcode += '\n'
     	try:
-                print(str.encode(gcode))
-                self.s.write(str.encode(gcode))
-                #self.s.readline().decode('utf-8')
+            self.s.write(str.encode(gcode))
+            return self.s.readline().decode('utf-8').strip()
     	except:
-    		print("Serial port unavailable")
+    	    return "Serial port unavailable"
     
     def moveRel(self, dx=None, dy=None, dz=None, speed=None, blockUntilComplete=True):
     	""" move a given distance, and return when movement completes
@@ -164,7 +164,7 @@ class grbl:
     
     	self.ensureMovementMode(absoluteMode = False)
     	if speed is None: speed = self.defaultSpeed
-    	gcode = '$G0'
+    	gcode = 'G0'
     	letters = 'xyz'
     	d = (dx, dy, dz)
     	newpos = list(self.pos)
@@ -229,21 +229,20 @@ class grbl:
  
     def getStatus(self):
         # TODO(evanflynn): status should be ROS msg?
-        self.s.write(b'?\r\n')
+        self.s.write(b'?\n')
+        time.sleep(0.1)
+        buffer_status = []
+        status = ''
         while True:
-            try:
-                status = self.s.readline()
-                if status is not None:
-                    try:
-                        return self.decodeStatus(status.decode('utf-8')).strip()
-                    except IndexError:
-                        print("No matches found in serial")
-                else:
-                    break
-            except:
-                print("Report readiness but empty")
+            if (self.s.inWaiting()):
+                status = self.decodeStatus(self.s.readline().decode('utf-8').strip())
+                buffer_status.append(status)
+                status = ''
+            else:
+                self.s.flushInput()
+                return buffer_status
 
     def decodeStatus(self, status):
         if('error' in status):
-            return GRBLSTATUS(int(status.split(':',1)[1]))
+            return GRBLSTATUS(int(status.split(':',1)[1])).name
         return status

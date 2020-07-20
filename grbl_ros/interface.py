@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import time
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String
@@ -61,34 +62,44 @@ class GRBLInterface(Node):
                                steps_x.get_parameter_value().integer_value,
                                steps_y.get_parameter_value().integer_value,
                                steps_z.get_parameter_value().integer_value)
+
+        self.wake()
         self.refreshStatus()
+        
         self.refreshPosition()
+
+    def wake(self):
+        self.grbl_obj.s.write(b'\r\n\r\n')
+        time.sleep(2)   # wait for grbl to initialize
+        self.grbl_obj.s.flushInput()
 
     def refreshStatus(self):
         status = self.grbl_obj.getStatus()
-        self.get_logger().info(str(status))
-        
-        # TODO(evanflynn): temp code to clear alarm error, should be user decision
-        self.grbl_obj.clearAlarm()
-        
-        status = self.grbl_obj.getStatus()
-        self.get_logger().info(str(status))
-        
-        ros_status = String()
-        ros_status.data = str(status)
-        self.pub_status_.publish(ros_status)
+        for stat in status:
+            self.get_logger().info(stat)
+            if ('error' in stat):
+                # TODO(evanflynn): temp code to clear alarm error, should be user decision
+                self.get_logger().warn(self.grbl_obj.clearAlarm())
+            ros_status = String()
+            ros_status.data = stat
+            self.pub_status_.publish(ros_status)
 
     def refreshPosition(self):
         pose = self.grbl_obj.getPose()
         self.pub_pos_.publish(pose)
 
     def poseCallback(self, msg):
-        self.get_logger().info("Setting position to [ X: %f, Y: %f, Z: %f ]")
         self.grbl_obj.moveTo(msg.position.x, msg.position.y, msg.position.z, blockUntilComplete=True)
+        self.refreshStatus()
+        self.refreshPosition()
 
     def gcodeCallback(self, msg):
-        self.get_logger().info("Sending GCODE command")
-        self.grbl_obj.gcode(msg.data, blockUntilComplete=True)
+        self.get_logger().info("Sending GCODE command: " + msg.data)
+        status = self.grbl_obj.gcode(msg.data)
+        # warn user of grbl response
+        self.get_logger().warn(status)
+        self.refreshStatus()
+        self.refreshPosition()
     
     def stopCallback(self, msg):
         #stop steppers
