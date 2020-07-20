@@ -77,6 +77,11 @@ class grbl:
         # close the serial connection
     	self.s.close()
     	
+    def gcode(self, gcode):
+        # TODO(evanflynn): need to add some input checking
+        self.s.write(str.encode(gcode + '\r\n'))
+        self.s.readline()
+    
     def getPose(self):
         pose = Pose()
         pose.position.x  = float(self.pos[0])
@@ -96,14 +101,16 @@ class grbl:
     	
     def home(self):
     	# initiates the homing procedure
-    	self.s.write("$H\n")
+    	self.s.write(b"$H\n")
     	self.s.readline()
-    	self.pos = list(self.origin)
+    
+    def clearAlarm(self):
+    	self.s.write(b"$X\n")
     
     def enableSteppers(self):
     	# enable the stepper motors
     	try:
-    		self.s.write("M17\n")
+    		self.s.write(b"M17\n")
     		self.s.readline()
     	except:
     		print("Serial port unavailable")	
@@ -111,7 +118,7 @@ class grbl:
     def disableSteppers(self):
     	# Disable the stepper motors
     	try:
-    		self.s.write("M18\n")
+    		self.s.write(b"M18\n")
     		self.s.readline()
     	except:
     		print("Serial port unavailable")
@@ -140,11 +147,11 @@ class grbl:
     			newpos[i] = pos[i]
     
     	gcode += ' F' + str(speed)
-    	gcode += '\n'
+    	gcode += '\r\n'
     	try:
                 print(str.encode(gcode))
                 self.s.write(str.encode(gcode))
-                self.get_logger().info(self.s.readline().decode('utf-8'))
+                #self.s.readline().decode('utf-8')
     	except:
     		print("Serial port unavailable")
     
@@ -157,7 +164,7 @@ class grbl:
     
     	self.ensureMovementMode(absoluteMode = False)
     	if speed is None: speed = self.defaultSpeed
-    	gcode = 'G0'
+    	gcode = '$G0'
     	letters = 'xyz'
     	d = (dx, dy, dz)
     	newpos = list(self.pos)
@@ -169,9 +176,9 @@ class grbl:
     			newpos[i] += d[i]
 
     	gcode += ' f' + str(speed)
-    	gcode += '\n'
+    	gcode += '\r\n'
 
-    	self.s.write(gcode)
+    	self.s.write(str.encode(gcode))
     	self.s.readline()		
 
     	# the position update should be done after reading state
@@ -191,7 +198,7 @@ class grbl:
     def setOrigin(self, x=0, y=0, z=0):
     	"""set current position to be (0,0,0), or a custom (x,y,z)"""
     	gcode = "G92 x{} y{} z{}\n".format(x, y, z)
-    	self.s.write(gcode)
+    	self.s.write(str.encode(gcode))
     	self.s.readline()
 
     	# update our internal location
@@ -203,16 +210,16 @@ class grbl:
         if self.abs_move == absoluteMode: return
         self.abs_move = absoluteMode
         if absoluteMode:
-            self.s.write(b"G90\n")		# absolute movement mode
+            self.s.write(b"G90\r\n")		# absolute movement mode
         else:
-            self.s.write(b"G91\n")		# relative movement mode
+            self.s.write(b"G91\r\n")		# relative movement mode
             self.s.readline()
 
     def blockUntilIdle(self):
         """ polls until GRBL indicates it is done with the last command """
         pollcount = 0
         while True:
-            self.s.write("?")
+            self.s.write(b"?\r\n")
             status = self.s.readline()
             if status.startswith('<Idle'): break
             # not used
@@ -222,13 +229,13 @@ class grbl:
  
     def getStatus(self):
         # TODO(evanflynn): status should be ROS msg?
-        self.s.write(b'?')
+        self.s.write(b'?\r\n')
         while True:
             try:
                 status = self.s.readline()
                 if status is not None:
                     try:
-                        return self.decodeStatus(status.decode('utf-8'))
+                        return self.decodeStatus(status.decode('utf-8')).strip()
                     except IndexError:
                         print("No matches found in serial")
                 else:

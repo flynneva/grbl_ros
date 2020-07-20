@@ -13,9 +13,9 @@ class GRBLInterface(Node):
         super().__init__(grbl_node_name)
         self.pub_pos_     = self.create_publisher(Pose, grbl_node_name + '/position', 10)
         self.pub_status_  = self.create_publisher(String, grbl_node_name + '/status', 10)
-        self.sub_cmd_ = self.create_subscription(Pose, grbl_node_name + '/cmd' , self.cmdCallback, 10)
+        self.sub_cmd_ = self.create_subscription(String, grbl_node_name + '/send_gcode' , self.gcodeCallback, 10)
+        self.sub_pose_ = self.create_subscription(Pose, grbl_node_name + '/set_pose' , self.poseCallback, 10)
         self.sub_stop_ = self.create_subscription(String, grbl_node_name + '/stop', self.stopCallback, 10)
-        self.sub_cmd_ # prevent unused variable warning
         self.sub_stop_ # prevent unused variable warning
 
         # declare parameters
@@ -66,6 +66,14 @@ class GRBLInterface(Node):
 
     def refreshStatus(self):
         status = self.grbl_obj.getStatus()
+        self.get_logger().info(str(status))
+        
+        # TODO(evanflynn): temp code to clear alarm error, should be user decision
+        self.grbl_obj.clearAlarm()
+        
+        status = self.grbl_obj.getStatus()
+        self.get_logger().info(str(status))
+        
         ros_status = String()
         ros_status.data = str(status)
         self.pub_status_.publish(ros_status)
@@ -74,10 +82,14 @@ class GRBLInterface(Node):
         pose = self.grbl_obj.getPose()
         self.pub_pos_.publish(pose)
 
-    def cmdCallback(self, msg):
-        self.get_logger().info("received msg")
+    def poseCallback(self, msg):
+        self.get_logger().info("Setting position to [ X: %f, Y: %f, Z: %f ]")
         self.grbl_obj.moveTo(msg.position.x, msg.position.y, msg.position.z, blockUntilComplete=True)
 
+    def gcodeCallback(self, msg):
+        self.get_logger().info("Sending GCODE command")
+        self.grbl_obj.gcode(msg.data, blockUntilComplete=True)
+    
     def stopCallback(self, msg):
         #stop steppers
         if   msg.data == 's':
