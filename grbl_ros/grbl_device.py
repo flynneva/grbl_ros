@@ -1,4 +1,5 @@
 # Copyright (c) 2020, Evan Flynn
+# Licensed under the MIT License
 
 import serial
 import time

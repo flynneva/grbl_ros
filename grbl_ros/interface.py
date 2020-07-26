@@ -1,5 +1,6 @@
-#!/usr/bin/env python
 # Copyright (c) 2020, Evan Flynn
+# Licensed under the MIT License
+
 import time
 import rclpy
 from rclpy.node import Node
