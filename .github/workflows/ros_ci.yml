@@ -5,7 +5,7 @@ on: pull_request   # run on all pushes & PR's for every branch
 jobs:
   build:
 
-    runs-on: ubuntu-focal
+    runs-on: ubuntu-20.04
 
     steps:
     - name: setup directories
