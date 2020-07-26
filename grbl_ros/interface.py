@@ -1,7 +1,9 @@
 # Copyright (c) 2020, Evan Flynn
-# Licensed under the MIT License
+# Software License Agreement (MIT)
+# @author Evan Flynn
 
 import time
+
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String

@@ -1,5 +1,6 @@
 # Copyright (c) 2020, Evan Flynn
-# Licensed under the MIT License
+# Software License Agreement (MIT)
+# @author Evan Flynn
 
 import serial
 import time
