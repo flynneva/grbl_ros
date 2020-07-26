@@ -1,3 +1,4 @@
+# Copyright (c) 2020, Evan Flynn
 from enum import Enum
 
 '''

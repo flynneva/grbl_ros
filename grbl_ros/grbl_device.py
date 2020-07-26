@@ -1,3 +1,5 @@
+# Copyright (c) 2020, Evan Flynn
+
 import serial
 import time
 import re

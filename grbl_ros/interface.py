@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# Copyright (c) 2020, Evan Flynn
 import time
 import rclpy
 from rclpy.node import Node

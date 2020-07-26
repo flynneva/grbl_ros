@@ -1,3 +1,5 @@
+# Copyright (c) 2020, Evan Flynn
+
 import launch
 import launch.actions
 import launch.substitutions

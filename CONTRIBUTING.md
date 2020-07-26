@@ -1,3 +1,7 @@
+Any contribution that you make to this repository will
+be under the MIT license, as dictated by that
+[license](https://opensource.org/licenses/MIT).
+
 Thank you for contributing back to the open source community!
 
 If you've found a bug, please open an [issue](https://github.com/flynneva/grbl_ros/issues).
