@@ -20,3 +20,5 @@ jobs:
         required-ros-distributions: foxy
     - name: build and test
       uses: ros-tooling/action-ros-ci@0.0.15
+      with:
+        package-name: grbl_ros
