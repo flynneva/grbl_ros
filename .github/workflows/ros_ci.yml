@@ -3,22 +3,57 @@ name: ROS CI
 on: pull_request   # run on all pushes & PR's for every branch
 
 jobs:
-  build:
-
-    runs-on: ubuntu-20.04
-
+  test: # Docker is not supported on OS X, and Windows.
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macOS-latest, windows-latest]
+        ros_distribution: # Only include ROS 2 distributions, as ROS 1 does not support OS X, and Windows.
+          - dashing
+          - eloquent
+          - foxy
     steps:
-    - name: setup directories
-      run: mkdir -p catkin_ws/src
-    - name: checkout
-      uses: actions/checkout@v2
-      with:
-        path: catkin_ws/src
-    - name: setup ROS environment
-      uses: ros-tooling/setup-ros@0.0.25
-      with:
-        required-ros-distributions: foxy
-    - name: build and test
-      uses: ros-tooling/action-ros-ci@0.0.15
-      with:
-        package-name: grbl_ros
+      - uses: ros-tooling/setup-ros@0.0.16
+        with:
+          required-ros-distributions: ${{ matrix.ros_distribution }}
+      - run: vcs --help
+
+  test_docker: # On Linux, iterates on all ROS 1, and ROS 2 distributions.
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        ros_distribution:
+          - dashing
+          - eloquent
+          - foxy
+
+        include:
+          # Dashing Diademata (May 2019 - May 2021)
+          - docker_image: ubuntu:bionic
+            ros_distribution: dashing
+            ros_version: 2
+
+          # Eloquent Elusor (November 2019 - November 2020)
+          - docker_image: ubuntu:bionic
+            ros_distribution: eloquent
+            ros_version: 2
+          
+          # Foxy Fitzroy (June 2020 - May 2023)
+          - docker_image: ubuntu-20.04
+            ros_distribution: foxy
+            ros_version: 2
+    steps:
+      - name: setup directories
+        run: mkdir -p catkin_ws/src
+      - name: checkout
+        uses: actions/checkout@v2
+        with:
+          path: catkin_ws/src
+      - name: setup ROS environment
+        uses: ros-tooling/setup-ros@0.0.25
+        with:
+          required-ros-distributions: ${{ matrix.ros_distribution }}
+      - name: build and test
+        uses: ros-tooling/action-ros-ci@0.0.15
+        with:
+          package-name: grbl_ros  # TODO: auto-set from repo name?
