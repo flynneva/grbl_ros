@@ -5,4 +5,3 @@ grbl_ros
    :maxdepth: 4
 
    grbl_ros
-   setup
