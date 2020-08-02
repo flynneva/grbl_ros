@@ -1,4 +1,4 @@
-name: ROS CI
+name: ROS 2 CI
 
 on: pull_request   # run on all pushes & PR's for every branch
 
