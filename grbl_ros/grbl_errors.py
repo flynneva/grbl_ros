@@ -26,7 +26,7 @@ from enum import Enum
 
 
 class GRBLSTATUS(Enum):
-    NO_ERROR = 0  # 
+    NO_ERROR = 0
     MISSING_LETTER = 1  # G-code words consist of a letter and a value. Letter not found
     INVALID_NUMERIC = 2  # Numeric value format is not valid or missing an expected value
     COMMAND_NOT_SUPPORTED = 3  # Grbl '$' system command was not recognized or supported
