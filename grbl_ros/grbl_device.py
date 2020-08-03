@@ -35,10 +35,14 @@ import serial
 
 
 class grbl:
-    # regular expression for parsing GRBL status msgs
-    # __pos_pattern__ = re.compile('.Pos:(\-?\d+\.\d+),(\-?\d+\.\d+),(\-?\d+\.\d+)')
 
     def __init__(self):
+        """
+        Summary line.
+
+        Initialize the grbl class with default parameters
+
+        """
         # Default parameter values set in startup
         self.s = None	 # serial port object
         self.abs_move = None	 # GRBL has 2 movement modes: relative and absolute
@@ -63,6 +67,28 @@ class grbl:
 
     def startup(self, port, baud, acc, maxx, maxy, maxz,
                 spdf, spdx, spdy, spdz, stepsx, stepsy, stepsz):
+        """
+        Summary line.
+
+        Startup the GRBL machine with the specified parameters
+
+        Args:
+          self (obj): the grbl object
+          port (str): the serial port that connects to the grbl device
+          baud (int): the baud rate to use for serial communication with the grbl device
+          acc (int): the grbl device axis acceleration (mm/s^2)
+          maxx (int): workable travel of the grbl device for its x axis (mm)
+          maxy (int): workable travel of the grbl device for its y axis (mm)
+          maxz (int): workable travel of the grbl device for tts z axis (mm)
+          spdf (int): default speed of the grbl device (mm/min)
+          spdx (int): maximum speed for x axis (mm/min)
+          spdy (int): maximum speed for y axis (mm/min)
+          spdz (int): maximum speed for z axis (mm/min)
+          stepsx (int): number of steps per mm for x axis (steps)
+          stepsy (int): number of steps per mm for y axis (steps)
+          stepsz (int): number of steps per mm for z axis (steps)
+
+        """
         # initiate all CNC parameters read from .launch file
         self.baudrate = baud
         self.port = port
