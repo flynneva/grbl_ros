@@ -35,8 +35,10 @@ import serial
 
 
 class grbl:
+
     def __init__(self):
-        """Summary line.
+        """
+        Summary line.
 
         Initialize the grbl class with default parameters
 
@@ -65,7 +67,8 @@ class grbl:
 
     def startup(self, port, baud, acc, maxx, maxy, maxz,
                 spdf, spdx, spdy, spdz, stepsx, stepsy, stepsz):
-        """Summary line.
+        """
+        Summary line.
 
         Startup the GRBL machine with the specified parameters
 
