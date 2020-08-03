@@ -60,3 +60,4 @@ jobs:
         uses: ros-tooling/action-ros-ci@0.0.17
         with:
           package-name: grbl_ros  # TODO: auto-set from repo name?
+          source-ros-binary-installation: ${{ matrix.ros_distribution }}
