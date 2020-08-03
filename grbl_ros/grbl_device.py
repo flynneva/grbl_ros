@@ -73,7 +73,7 @@ class grbl:
         Startup the GRBL machine with the specified parameters
 
         Args:
-        -----
+        ----
           self (obj): the grbl object
           port (str): the serial port that connects to the grbl device
           baud (int): the baud rate to use for serial communication with the grbl device
