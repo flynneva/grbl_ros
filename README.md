@@ -7,11 +7,13 @@ Currently supports:
 - sending plain GCODE commands using ROS2 service
 
 ## Supported Platforms
+**All = Ubuntu 20.04, Windows 10, Mac OS X**
+
 OS           | ROS 2 Version | 
 ------------ | ------------- | 
-Ubuntu 20.04, Windows 10, OSX | Dashing Diademata | 
-Ubuntu 20.04, Windows 10, OSX | Eloquent Elusor | 
-Ubuntu 20.04, Windows 10, OSX | Foxy Fitzroy | 
+All | Dashing Diademata | 
+All | Eloquent Elusor | 
+All | Foxy Fitzroy | 
 
 ## Getting started
 
