@@ -7,13 +7,14 @@ Currently supports:
 - sending plain GCODE commands using ROS2 service
 
 ## Supported Platforms
-**All Tier 1 platforms = Windows 10, Mac OS X**
-
+**All Tier 1 platforms = Windows 10, Mac OS X, and either Ubuntu 18.04 or Ubuntu 20.04**
 OS           | ROS 2 Version | 
 ------------ | ------------- | 
 All Tier 1 platforms | [Dashing Diademata](https://index.ros.org/doc/ros2/Releases/Release-Dashing-Diademata/) | 
 All Tier 1 platforms | [Eloquent Elusor](https://index.ros.org/doc/ros2/Releases/Release-Eloquent-Elusor/) | 
 All Tier 1 platforms | [Foxy Fitzroy](https://index.ros.org/doc/ros2/Releases/Release-Foxy-Fitzroy/) | 
+
+Dashing and Eloquent target Ubuntu 18.04 while Foxy targets Ubuntu 20.04.
 
 ## Getting started
 
