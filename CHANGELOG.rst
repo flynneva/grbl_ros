@@ -2,8 +2,8 @@
 Changelog for package grbl_ros
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.0.2 (2020-08-05)
+------------------
 * Merge branch 'main' of github.com:flynneva/grbl_ros into main
 * bump version
 * Merge pull request `#7 <https://github.com/flynneva/grbl_ros/issues/7>`_ from flynneva/docs
