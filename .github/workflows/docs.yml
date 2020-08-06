@@ -1,0 +1,19 @@
+name: Generate Documentation
+
+on:
+  push:
+    branches:
+      - main
+jobs:
+  generate_docs:
+    runs-on: ubuntu-latest
+    steps:
+    - name: checkout
+      uses: actions/checkout@v2
+    - name: build documentation
+      uses: ammaraskar/sphinx-action@0.4
+    - name: deploy
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./docs/_build/html/
