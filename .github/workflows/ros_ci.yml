@@ -18,7 +18,7 @@ jobs:
         with:
           required-ros-distributions: ${{ matrix.ros_distribution }}
       - name: build and test
-        uses: ros-tooling/action-ros-ci@0.0.17
+        uses: ros-tooling/action-ros-ci@0.0.15
         with:
           package-name: ${{ matrix.package }}
           target-ros2-distro: ${{ matrix.ros_distribution }}
@@ -60,7 +60,7 @@ jobs:
         with:
           required-ros-distributions: ${{ matrix.ros_distribution }}
       - name: build and test
-        uses: ros-tooling/action-ros-ci@0.0.17
+        uses: ros-tooling/action-ros-ci@0.0.15
         with:
           package-name: ${{ matrix.package }}
           target-ros2-distro: ${{ matrix.ros_distribution }}
