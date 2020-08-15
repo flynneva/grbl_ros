@@ -7,7 +7,6 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        package: [grbl_ros]
         os: [macOS-latest, windows-latest]
         ros_distribution: # Only include ROS 2 distributions for OS X, Windows
           - dashing
@@ -18,9 +17,9 @@ jobs:
         with:
           required-ros-distributions: ${{ matrix.ros_distribution }}
       - name: build and test
-        uses: ros-tooling/action-ros-ci@0.0.18
+        uses: ros-tooling/action-ros-ci@0.0.19
         with:
-          package-name: ${{ matrix.package }}
+          package-name: grbl_ros
           target-ros2-distro: ${{ matrix.ros_distribution }}
 
   test_environment_linux:
@@ -28,7 +27,6 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        package: [grbl_ros]
         ros_distribution:
           - dashing
           - eloquent
@@ -60,7 +58,7 @@ jobs:
         with:
           required-ros-distributions: ${{ matrix.ros_distribution }}
       - name: build and test
-        uses: ros-tooling/action-ros-ci@0.0.18
+        uses: ros-tooling/action-ros-ci@0.0.19
         with:
-          package-name: ${{ matrix.package }}
+          package-name: grbl_ros
           target-ros2-distro: ${{ matrix.ros_distribution }}
