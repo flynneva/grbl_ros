@@ -13,7 +13,8 @@ jobs:
           - eloquent
           - foxy
     steps:
-      - uses: ros-tooling/setup-ros@0.0.25
+      - name: setup ROS environment
+        uses: flynneva/setup-ros@windows-fix
         with:
           required-ros-distributions: ${{ matrix.ros_distribution }}
       - name: build and test
@@ -55,7 +56,7 @@ jobs:
         with:
           path: ros_ws/src
       - name: setup ROS environment
-        uses: ros-tooling/setup-ros@0.0.25
+        uses: flynneva/setup-ros@windows-fix
         with:
           required-ros-distributions: ${{ matrix.ros_distribution }}
       - name: build and test
