@@ -18,7 +18,7 @@ jobs:
         with:
           required-ros-distributions: ${{ matrix.ros_distribution }}
       - name: build and test
-        uses: ros-tooling/action-ros-ci@0.0.19
+        uses: flynneva/action-ros-ci@patch-1
         with:
           package-name: grbl_ros
           target-ros2-distro: ${{ matrix.ros_distribution }}
@@ -56,7 +56,7 @@ jobs:
         with:
           path: ros_ws/src
       - name: setup ROS environment
-        uses: flynneva/setup-ros@windows-fix
+        uses: flynneva/action-ros-ci@patch-1
         with:
           required-ros-distributions: ${{ matrix.ros_distribution }}
       - name: build and test
