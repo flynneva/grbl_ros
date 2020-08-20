@@ -7,18 +7,18 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [windows-latest]
+        os: [macOS-latest]
         ros_distribution: # Only include ROS 2 distributions for OS X, Windows
           - dashing
           - eloquent
           - foxy
     steps:
       - name: setup ROS environment
-        uses: flynneva/setup-ros@windows-fix
+        uses: ros-tooling/setup-ros@0.0.25
         with:
           required-ros-distributions: ${{ matrix.ros_distribution }}
       - name: build and test
-        uses: flynneva/action-ros-ci@patch-1
+        uses: ros-tooling/action-ros-ci@0.0.19
         with:
           package-name: grbl_ros
           target-ros2-distro: ${{ matrix.ros_distribution }}
@@ -56,11 +56,11 @@ jobs:
         with:
           path: ros_ws/src
       - name: setup ROS environment
-        uses: flynneva/setup-ros@windows-fix
+        uses: ros-tooling/setup-ros@0.0.25
         with:
           required-ros-distributions: ${{ matrix.ros_distribution }}
       - name: build and test
-        uses: flynneva/action-ros-ci@patch-1
+        uses: ros-tooling/action-ros-ci@0.0.19
         with:
           package-name: grbl_ros
           target-ros2-distro: ${{ matrix.ros_distribution }}
