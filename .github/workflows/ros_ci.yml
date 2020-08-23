@@ -3,29 +3,8 @@ name: ROS 2 CI
 on: pull_request   # run on all pushes & PR's for every branch
 
 jobs:
-  test_environment: # Docker is not supported on OS X, and Windows.
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [macOS-latest]
-        ros_distribution: # Only include ROS 2 distributions for OS X, Windows
-          - dashing
-          - eloquent
-          - foxy
-    steps:
-      - name: setup ROS environment
-        uses: ros-tooling/setup-ros@0.0.25
-        with:
-          required-ros-distributions: ${{ matrix.ros_distribution }}
-      - name: build and test
-        uses: ros-tooling/action-ros-ci@0.0.19
-        with:
-          package-name: grbl_ros
-          target-ros2-distro: ${{ matrix.ros_distribution }}
-          vcs-repo-file-url: ""
-
-  test_environment_linux:
-    runs-on: ubuntu-latest
+  test_environment:
+    runs-on: [ubuntu-latest]
     strategy:
       fail-fast: false
       matrix:
