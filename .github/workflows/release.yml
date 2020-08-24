@@ -1,4 +1,4 @@
-name: Dashing Release
+name: Eloquent Release
 
 on:
  push:
@@ -6,7 +6,7 @@ on:
       - package.xml
       - 'package.xml'
     branches:
-      - 'dashing/devel'
+      - 'eloquent/devel'
 
 jobs:
   bloom-release:
