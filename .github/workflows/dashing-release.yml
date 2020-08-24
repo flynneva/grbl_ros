@@ -3,10 +3,9 @@ name: Dashing Release
 on:
  push:
     paths:
-      - package.xml
       - 'package.xml'
     branches:
-      - dashing
+      - 'dashing'
 
 jobs:
   bloom-release:
