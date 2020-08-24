@@ -1,4 +1,4 @@
-name: Release
+name: Foxy Release
 
 on:
  push:
@@ -6,7 +6,7 @@ on:
       - package.xml
       - 'package.xml'
     branches:
-      - devel
+      - 'foxy/devel'
 
 jobs:
   bloom-release:
@@ -18,7 +18,7 @@ jobs:
       id: bloom
       uses: at-wat/bloom-release-action@v0
       with:
-        ros_distro: dashing eloquent foxy
+        ros_distro: foxy
         github_token_bloom: ${{ secrets.BLOOM_RELEASE_TOKEN }}
         release_repository_push_url: https://github.com/${{ github.repository }}-release.git
         github_user: flynneva
