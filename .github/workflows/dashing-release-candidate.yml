@@ -6,7 +6,7 @@ on:
 jobs:
   release-candidate:
     runs-on: ubuntu-latest
-    if: startsWith(github.event.issue.title, 'Dashing Release ')
+    if: startsWith(github.event.issue.title, 'Release ') && contains(github.event.issue.body, 'dashing')
     steps:
       - name: checkout
         uses: actions/checkout@v2
