@@ -1,4 +1,4 @@
-name: dashing-release-candidate
+name: eloquent-release-candidate
 on:
   issues:
     types: [opened, edited]
@@ -6,7 +6,7 @@ on:
 jobs:
   release-candidate:
     runs-on: ubuntu-latest
-    if: startsWith(github.event.issue.title, 'Dashing Release ')
+    if: startsWith(github.event.issue.title, 'Eloquent Release ')
     steps:
       - name: checkout
         uses: actions/checkout@v2
