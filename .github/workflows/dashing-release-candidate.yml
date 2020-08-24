@@ -14,7 +14,7 @@ jobs:
           #checkout branch specified in issue body
           ref: dashing
       - name: prepare repo
-        run: git checkout "${GITHUB_REF:11}"
+        run: git checkout dashing
       - name: create release
         id: create_release
         uses: at-wat/catkin-release-action@v1.0.13
