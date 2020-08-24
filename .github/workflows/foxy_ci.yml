@@ -1,4 +1,4 @@
-name: ROS 2 CI
+name: Foxy CI
 
 on:
   pull_request:
