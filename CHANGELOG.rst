@@ -2,8 +2,10 @@
 Changelog for package grbl_ros
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-0.0.4 (2020-08-24)
-------------------
+Forthcoming
+-----------
+* dashing ci
+* Delete release-candidate.yml
 * bump 0.0.3
 * dashing release candidate
 * Delete greetings.yml
