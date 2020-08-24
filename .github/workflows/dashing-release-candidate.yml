@@ -26,7 +26,7 @@ jobs:
         with:
           source_branch: ${{ steps.create_release.outputs.created_branch }}
           destination_branch: dashing
-          pr_title: Release ${{ steps.create_release.outputs.version}}
+          pr_title: Dashing Release ${{ steps.create_release.outputs.version}}
           pr_body: close \#${{ github.event.issue.number }}
           pr_assignee: ${{ github.actor }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
