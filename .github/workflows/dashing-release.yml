@@ -6,7 +6,7 @@ on:
       - package.xml
       - 'package.xml'
     branches:
-      - devel
+      - dashing
 
 jobs:
   bloom-release:
