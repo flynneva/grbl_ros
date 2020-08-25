@@ -4,7 +4,7 @@ on:
   pull_request:
     branches:
       - 'eloquent'
-      - 'eloquent/devel'
+      - 'eloquent-devel'
 jobs:
   test_environment:
     runs-on: [ubuntu-latest]
