@@ -1,10 +1,10 @@
-name: ROS 2 CI
+name: Foxy CI
 
 on:
   pull_request:
     branches:
       - 'foxy'
-      - 'foxy/devel'
+      - 'foxy-devel'
 
 jobs:
   test_environment:
