@@ -19,12 +19,6 @@
 # THE SOFTWARE.
 
 
-import time
-import serial
-
-from geometry_msgs.msg import Pose
-
-
 #   This code was ported over to ROS2 from picatostas:
 #   https://github.com/picatostas/cnc_interface
 #   Special thanks to his work and the work before him
