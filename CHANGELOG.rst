@@ -2,8 +2,76 @@
 Changelog for package grbl_ros
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.0.10 (2020-09-01)
+-------------------
+* fixed merge conflicts for eloquent ci
+* restructure code
+* fixed flake8 errors
+* added python3-serial to package.xml
+* dependency is pyserial not serial
+* removed old import
+* setup-ros reference master branch
+* switched ci to rolling for main and devel branches
+* added changelog for rolling release
+* separated methods to semantic file name
+* Delete dashing-release.yml
+* Update dashing-release.yml
+* Update dashing-release.yml
+* Update foxy-release-candidate.yml
+* Update eloquent-release-candidate.yml
+* Update dashing-release-candidate.yml
+* Update dashing-release.yml
+* Update and rename release.yml to dashing-release.yml
+* Create foxy-release-candidate.yml
+* Create eloquent-release-candidate.yml
+* Update and rename ros_ci.yml to eloquent_ci.yml
+* Delete release.yml
+* Delete release-candidate.yml
+* Merge pull request `#21 <https://github.com/flynneva/grbl_ros/issues/21>`_ from flynneva/devel
+* specify distro in issue body
+* Merge pull request `#18 <https://github.com/flynneva/grbl_ros/issues/18>`_ from flynneva/devel
+* changed checkout branch name
+* Merge pull request `#16 <https://github.com/flynneva/grbl_ros/issues/16>`_ from flynneva/devel
+* renamed and specified branch to checkout
+* Merge pull request `#14 <https://github.com/flynneva/grbl_ros/issues/14>`_ from flynneva/devel
+* create dashing release candidate
+* Update greetings.yml
+* Merge pull request `#12 <https://github.com/flynneva/grbl_ros/issues/12>`_ from flynneva/devel
+* rolling not valid for this setup-ros release
+* only run if issue has eloquent in the issue
+* eloquent release
+* only run eloquent on eloquent branches
+* dashing release candidate
+* Delete greetings.yml
+* Delete docs.yml
+* only release dashing on dashing branch
+* run on rolling for main/devel
+* import main for dashing/eloquent
+* remove mac from action
+* switched to mac os and back to ros-tooling wg
+* removed mac from matrix
+* accidentally put uses on wrong step
+* test action-ros-ci that sources ROS for windows
+* test windows fix for ci
+* vcs-repo-file-url param
+* Merge pull request `#11 <https://github.com/flynneva/grbl_ros/issues/11>`_ from flynneva/devel
+* removed vcs-repo-file-url param
+* bump action-ros-ci & add vcs repo url
+* package should not be in matrix
+* Merge pull request `#10 <https://github.com/flynneva/grbl_ros/issues/10>`_ from flynneva/devel
+* bumped ros ci to 0.0.18
+* regressed to ros ci 0.0.15
+* specify target distro
+* specify target distro
+* added ros source binary for distro
+* Merge pull request `#9 <https://github.com/flynneva/grbl_ros/issues/9>`_ from flynneva/devel
+* Merge pull request `#8 <https://github.com/flynneva/grbl_ros/issues/8>`_ from flynneva/update_readme
+* added release actions
+* added testing section
+* forgot to add ubuntu
+* update readme
+* Contributors: Evan Flynn
+
 * separated methods to semantic file name
 * Delete dashing-release.yml
 * Update dashing-release.yml
@@ -16,22 +84,16 @@ Forthcoming
 * Create foxy-release-candidate.yml
 * Create eloquent-release-candidate.yml
 * Merge pull request `#21 <https://github.com/flynneva/grbl_ros/issues/21>`_ from flynneva/devel
-  specify distro in issue body
 * specify distro in issue body
 * Merge pull request `#18 <https://github.com/flynneva/grbl_ros/issues/18>`_ from flynneva/devel
-  changed checkout branch name
 * changed checkout branch name
 * Merge pull request `#16 <https://github.com/flynneva/grbl_ros/issues/16>`_ from flynneva/devel
-  renamed and specified branch to checkout
 * renamed and specified branch to checkout
 * Merge pull request `#14 <https://github.com/flynneva/grbl_ros/issues/14>`_ from flynneva/devel
-  create dashing release candidate
 * create dashing release candidate
 * Update greetings.yml
 * Merge pull request `#12 <https://github.com/flynneva/grbl_ros/issues/12>`_ from flynneva/devel
-  vcs-repo-file-url param
 * rolling not valid for this setup-ros release
-  wait to switch to rolling until next setup-ros release
 * run on rolling for main/devel
 * remove mac from action
 * switched to mac os and back to ros-tooling wg
@@ -41,21 +103,17 @@ Forthcoming
 * test windows fix for ci
 * vcs-repo-file-url param
 * Merge pull request `#11 <https://github.com/flynneva/grbl_ros/issues/11>`_ from flynneva/devel
-  Devel
 * removed vcs-repo-file-url param
 * bump action-ros-ci & add vcs repo url
 * package should not be in matrix
 * Merge pull request `#10 <https://github.com/flynneva/grbl_ros/issues/10>`_ from flynneva/devel
-  added ros source binary for distro
 * bumped ros ci to 0.0.18
 * regressed to ros ci 0.0.15
 * specify target distro
 * specify target distro
 * added ros source binary for distro
 * Merge pull request `#9 <https://github.com/flynneva/grbl_ros/issues/9>`_ from flynneva/devel
-  update readme and add release actions
 * Merge pull request `#8 <https://github.com/flynneva/grbl_ros/issues/8>`_ from flynneva/update_readme
-  Update readme & add release actions
 * added release actions
 * added testing section
 * forgot to add ubuntu
