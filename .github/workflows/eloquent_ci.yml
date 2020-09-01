@@ -1,4 +1,14 @@
+<<<<<<< HEAD:.github/workflows/eloquent_ci.yml
 name: Eloquent CI
+=======
+name: Rolling CI
+
+on:
+  pull_request:
+    branches:
+      - 'devel'
+      - 'main'
+>>>>>>> restructure:.github/workflows/ros_ci.yml
 
 on:
   pull_request:
@@ -12,11 +22,19 @@ jobs:
       fail-fast: false
       matrix:
         ros_distribution:
+<<<<<<< HEAD:.github/workflows/eloquent_ci.yml
           - eloquent
         include:
           # Eloquent Elusor (November 2019 - November 2020)
           - docker_image: ubuntu:bionic
             ros_distribution: eloquent
+=======
+          - rolling
+        include:
+          # Rolling Ridley  (June 2020 - Present)
+          - docker_image: ubuntu:focal
+            ros_distribution: rolling
+>>>>>>> restructure:.github/workflows/ros_ci.yml
             ros_version: 2
     container:
       image: ${{ matrix.docker_image }}
@@ -28,7 +46,7 @@ jobs:
         with:
           path: ros_ws/src
       - name: setup ROS environment
-        uses: ros-tooling/setup-ros@0.0.25
+        uses: ros-tooling/setup-ros@master
         with:
           required-ros-distributions: ${{ matrix.ros_distribution }}
       - name: build and test
