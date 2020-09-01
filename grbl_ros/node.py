@@ -140,8 +140,8 @@ class grbl_node(Node):
 
 def main():
     rclpy.init()
-    interface = grbl()
-    rclpy.spin(interface)
+    node = grbl_node()
+    rclpy.spin(node)
 
 
 if __name__ == '__main__':
