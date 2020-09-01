@@ -16,7 +16,7 @@ setuptools.setup(
         (os.path.join('share', package_name), glob('launch/*.launch.py'))
     ],
     install_requires=[
-        'serial',
+        'pyserial',
     ],
     zip_safe=True,
     maintainer='Evan Flynn',
