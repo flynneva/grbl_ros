@@ -26,7 +26,7 @@ setuptools.setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'interface = grbl_ros.interface:main'
+            'interface = grbl_ros.node:main'
         ],
     },
 )

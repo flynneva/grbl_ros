@@ -18,14 +18,35 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-
+import time
 from enum import Enum
 
-# enum class for grbl error list
-# http://domoticx.com/cnc-machine-grbl-error-list/
+
+def getStatus(self):
+    # TODO(evanflynn): status should be ROS msg?
+    self.s.write(b'?\n')
+    time.sleep(0.1)
+    buffer_status = []
+    status = ''
+    while True:
+        if (self.s.inWaiting()):
+            status = self.decodeStatus(self.s.readline().decode('utf-8').strip())
+            buffer_status.append(status)
+            status = ''
+        else:
+            self.s.flushInput()
+            return buffer_status
 
 
-class GRBLSTATUS(Enum):
+def decodeStatus(self, status):
+    if('error' in status):
+        return STATUS(int(status.split(':', 1)[1])).name
+    return status
+
+
+class STATUS(Enum):
+    # enum class for grbl error list
+    # http://domoticx.com/cnc-machine-grbl-error-list/
     NO_ERROR = 0
     MISSING_LETTER = 1  # G-code words consist of a letter and a value. Letter not found
     INVALID_NUMERIC = 2  # Numeric value format is not valid or missing an expected value
