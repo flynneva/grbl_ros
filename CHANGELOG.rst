@@ -33,6 +33,17 @@ Forthcoming
 * rolling not valid for this setup-ros release
   wait to switch to rolling until next setup-ros release
 * run on rolling for main/devel
+
+0.0.5 (2020-08-24)
+------------------
+* dashing ci
+* Delete release-candidate.yml
+* bump 0.0.3
+* dashing release candidate
+* Delete greetings.yml
+* Delete docs.yml
+* only release dashing on dashing branch
+* import main for dashing/eloquent
 * remove mac from action
 * switched to mac os and back to ros-tooling wg
 * removed mac from matrix
@@ -47,6 +58,9 @@ Forthcoming
 * package should not be in matrix
 * Merge pull request `#10 <https://github.com/flynneva/grbl_ros/issues/10>`_ from flynneva/devel
   added ros source binary for distro
+* removed vcs-repo-file-url param
+* bump action-ros-ci & add vcs repo url
+* package should not be in matrix
 * bumped ros ci to 0.0.18
 * regressed to ros ci 0.0.15
 * specify target distro
@@ -56,6 +70,7 @@ Forthcoming
   update readme and add release actions
 * Merge pull request `#8 <https://github.com/flynneva/grbl_ros/issues/8>`_ from flynneva/update_readme
   Update readme & add release actions
+* Merge pull request `#8 <https://github.com/flynneva/grbl_ros/issues/8>`_ from flynneva/update_readme
 * added release actions
 * added testing section
 * forgot to add ubuntu
