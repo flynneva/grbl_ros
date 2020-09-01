@@ -2,8 +2,8 @@
 Changelog for package grbl_ros
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.0.3 (2020-09-01)
+------------------
 * Merge branch 'restructure' into foxy-devel
 * fixed flake8 errors
 * added python3-serial to package.xml
