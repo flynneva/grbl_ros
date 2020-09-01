@@ -2,8 +2,8 @@
 Changelog for package grbl_ros
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.0.10 (2020-09-01)
+-------------------
 * fixed merge conflicts for eloquent ci
 * restructure code
 * fixed flake8 errors
