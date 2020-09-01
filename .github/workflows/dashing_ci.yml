@@ -1,10 +1,19 @@
+<<<<<<< HEAD:.github/workflows/dashing_ci.yml
 name: Dashing CI
+=======
+name: Rolling CI
+>>>>>>> restructure:.github/workflows/ros_ci.yml
 
 on:
   pull_request:
     branches:
+<<<<<<< HEAD:.github/workflows/dashing_ci.yml
       - 'dashing'
       - 'dashing-devel'
+=======
+      - 'devel'
+      - 'main'
+>>>>>>> restructure:.github/workflows/ros_ci.yml
 
 jobs:
   test_environment:
@@ -13,11 +22,19 @@ jobs:
       fail-fast: false
       matrix:
         ros_distribution:
+<<<<<<< HEAD:.github/workflows/dashing_ci.yml
           - dashing
         include:
           # Dashing Diademata (May 2019 - May 2021)
           - docker_image: ubuntu:bionic
             ros_distribution: dashing
+=======
+          - rolling
+        include:
+          # Rolling Ridley  (June 2020 - Present)
+          - docker_image: ubuntu:focal
+            ros_distribution: rolling
+>>>>>>> restructure:.github/workflows/ros_ci.yml
             ros_version: 2
     container:
       image: ${{ matrix.docker_image }}
@@ -29,7 +46,7 @@ jobs:
         with:
           path: ros_ws/src
       - name: setup ROS environment
-        uses: ros-tooling/setup-ros@0.0.25
+        uses: ros-tooling/setup-ros@master
         with:
           required-ros-distributions: ${{ matrix.ros_distribution }}
       - name: build and test
