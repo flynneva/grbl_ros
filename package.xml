@@ -7,6 +7,8 @@
   <maintainer email="evanflynn.msu@gmail.com">Evan Flynn</maintainer>
   <license>MIT</license>
 
+  <build_depend>python3-serial</build_depend>
+
   <test_depend>ament_copyright</test_depend>
   <test_depend>ament_flake8</test_depend>
   <test_depend>ament_pep257</test_depend>

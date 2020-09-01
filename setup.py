@@ -16,7 +16,7 @@ setuptools.setup(
         (os.path.join('share', package_name), glob('launch/*.launch.py'))
     ],
     install_requires=[
-        'serial',
+        'pyserial',
     ],
     zip_safe=True,
     maintainer='Evan Flynn',
@@ -26,7 +26,7 @@ setuptools.setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'interface = grbl_ros.interface:main'
+            'interface = grbl_ros.node:main'
         ],
     },
 )
