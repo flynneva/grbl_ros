@@ -24,7 +24,7 @@ jobs:
         uses: repo-sync/pull-request@v2
         with:
           source_branch: ${{ steps.create_release.outputs.created_branch }}
-          destination_branch: rolling
+          destination_branch: main
           pr_title: Rolling Release ${{ steps.create_release.outputs.version}}
           pr_body: close \#${{ github.event.issue.number }}
           pr_assignee: ${{ github.actor }}
