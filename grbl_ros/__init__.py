@@ -65,3 +65,4 @@ class grbl:
     from ._configure import getPose, setSpeed, setOrigin, ensureMovementMode, blockUntilIdle, \
         clearAlarm, enableSteppers, disableSteppers
     from ._control import home, moveTo, moveRel, moveToOrigin
+    from ._command import startup, shutdown, gcode
