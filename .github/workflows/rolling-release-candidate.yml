@@ -1,4 +1,4 @@
-name: dashing-release-candidate
+name: rolling-release-candidate
 on:
   issues:
     types: [opened, edited]
@@ -6,13 +6,12 @@ on:
 jobs:
   release-candidate:
     runs-on: ubuntu-latest
-    if: startsWith(github.event.issue.title, 'Release ') && contains(github.event.issue.body, 'dashing')
+    if: startsWith(github.event.issue.title, 'Release ') && contains(github.event.issue.body, 'rolling')
     steps:
       - name: checkout
         uses: actions/checkout@v2
         with:
-          #checkout branch specified in issue body
-          ref: dashing-devel
+          ref: devel
       - name: create release
         id: create_release
         uses: at-wat/catkin-release-action@v1.0.13
@@ -25,8 +24,8 @@ jobs:
         uses: repo-sync/pull-request@v2
         with:
           source_branch: ${{ steps.create_release.outputs.created_branch }}
-          destination_branch: dashing
-          pr_title: Dashing Release ${{ steps.create_release.outputs.version}}
+          destination_branch: main
+          pr_title: Rolling Release ${{ steps.create_release.outputs.version}}
           pr_body: close \#${{ github.event.issue.number }}
           pr_assignee: ${{ github.actor }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
