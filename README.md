@@ -1,4 +1,4 @@
-# grbl_ros ![ROS 2 CI](https://github.com/flynneva/grbl_ros/workflows/ROS%202%20CI/badge.svg)
+# grbl_ros ![Rolling CI](https://github.com/flynneva/grbl_ros/workflows/Rolling%20CI/badge.svg)
 
 A simple ROS2 package for interfacing with a [grbl device](https://github.com/gnea/grbl).
 
@@ -8,13 +8,14 @@ Currently supports:
 
 ## Supported Platforms
 **All Tier 1 platforms = Windows 10, Mac OS X, and either Ubuntu 18.04 or Ubuntu 20.04**
-OS           | ROS 2 Version | 
------------- | ------------- | 
-All Tier 1 platforms | [Dashing Diademata](https://index.ros.org/doc/ros2/Releases/Release-Dashing-Diademata/) | 
-All Tier 1 platforms | [Eloquent Elusor](https://index.ros.org/doc/ros2/Releases/Release-Eloquent-Elusor/) | 
-All Tier 1 platforms | [Foxy Fitzroy](https://index.ros.org/doc/ros2/Releases/Release-Foxy-Fitzroy/) | 
+OS           | ROS 2 Version | CI Status | 
+------------ | ------------- | --------- |
+All Tier 1 platforms | [Dashing Diademata](https://index.ros.org/doc/ros2/Releases/Release-Dashing-Diademata/) | ![Dashing CI](https://github.com/flynneva/grbl_ros/workflows/Dashing%20CI/badge.svg) | 
+All Tier 1 platforms | [Eloquent Elusor](https://index.ros.org/doc/ros2/Releases/Release-Eloquent-Elusor/) | ![Eloquent CI](https://github.com/flynneva/grbl_ros/workflows/Eloquent%20CI/badge.svg) |
+All Tier 1 platforms | [Foxy Fitzroy](https://index.ros.org/doc/ros2/Releases/Release-Foxy-Fitzroy/) | ![Foxy CI](https://github.com/flynneva/grbl_ros/workflows/Foxy%20CI/badge.svg) |
+All Tier 1 platforms | [Rolling Ridley](https://index.ros.org/doc/ros2/Releases/Release-Rolling-Ridley/) | ![Rolling CI](https://github.com/flynneva/grbl_ros/workflows/Rolling%20CI/badge.svg) |
 
-Dashing and Eloquent target Ubuntu 18.04 while Foxy targets Ubuntu 20.04.
+Dashing and Eloquent target Ubuntu 18.04 while Foxy and Rolling target Ubuntu 20.04.
 
 ## Getting started
 
