@@ -21,7 +21,7 @@ import time
 
 from geometry_msgs.msg import Pose
 
-from grbl_ros.grbl_device import grbl
+from grbl_ros import grbl
 
 import rclpy
 
@@ -32,7 +32,7 @@ from std_msgs.msg import String
 grbl_node_name = 'cnc_001'
 
 
-class GRBLInterface(Node):
+class grbl_node(Node):
 
     def __init__(self):
         super().__init__(grbl_node_name)
@@ -140,7 +140,7 @@ class GRBLInterface(Node):
 
 def main():
     rclpy.init()
-    interface = GRBLInterface()
+    interface = grbl()
     rclpy.spin(interface)
 
 
