@@ -167,7 +167,7 @@ class grbl_node(Node):
         # stream gcode file to grbl device
         status = self.grbl_obj.stream(msg.data)
         # TODO(evanflynn): have stream method return something useful
-        self.get_logger().info(status)
+        self.get_logger().info(str(status))
         self.get_logger().info('GCODE file complete!')
         self.refreshStatus()
         self.refreshPosition()
