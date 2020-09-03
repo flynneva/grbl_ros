@@ -2,8 +2,25 @@
 Changelog for package grbl_ros
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
+0.0.11 (2020-09-03)
 -----------
+* bump version for dashing
+* Merge pull request `#54 <https://github.com/flynneva/grbl_ros/issues/54>`_ from flynneva/dashing-devel
+  added stream file function
+* added stream file function
+* Merge pull request `#49 <https://github.com/flynneva/grbl_ros/issues/49>`_ from flynneva/dashing-devel
+  fixed execution errors
+* fixed execution errors
+* Merge pull request `#47 <https://github.com/flynneva/grbl_ros/issues/47>`_ from flynneva/dashing-devel
+  Dashing devel
+* Merge branch 'devel' into dashing-devel
+* moved grbl_device.py to _command.py
+* Merge pull request `#40 <https://github.com/flynneva/grbl_ros/issues/40>`_ from flynneva/dashing
+  Dashing
+* Merge pull request `#33 <https://github.com/flynneva/grbl_ros/issues/33>`_ from flynneva/restructure
+  Restructure
+* Contributors: Evan Flynn
+
 * separated methods to semantic file name
 * Delete dashing-release.yml
 * Update dashing-release.yml
