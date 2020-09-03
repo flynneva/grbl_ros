@@ -7,7 +7,7 @@ package_name = 'grbl_ros'
 
 setuptools.setup(
     name=package_name,
-    version='0.0.9',
+    version='0.0.11',
     packages=[package_name],
     data_files=[
         ('share/ament_index/resource_index/packages',
