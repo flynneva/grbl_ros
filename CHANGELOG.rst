@@ -2,10 +2,16 @@
 Changelog for package grbl_ros
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-0.0.10 (2020-09-01)
--------------------
+0.1.1 (2020-09-03)
+-----------
+* added stream file function
+* fixed execution errors
+* Merge branch 'devel' into eloquent-devel
+* moved grbl_device.py to _command.py
 * fixed merge conflicts for eloquent ci
 * restructure code
+* Merge pull request `#33 <https://github.com/flynneva/grbl_ros/issues/33>`_ from flynneva/restructure
+  Restructure
 * fixed flake8 errors
 * added python3-serial to package.xml
 * dependency is pyserial not serial
@@ -38,6 +44,22 @@ Changelog for package grbl_ros
 * Update greetings.yml
 * Merge pull request `#12 <https://github.com/flynneva/grbl_ros/issues/12>`_ from flynneva/devel
 * rolling not valid for this setup-ros release
+  specify distro in issue body
+* specify distro in issue body
+* Merge pull request `#18 <https://github.com/flynneva/grbl_ros/issues/18>`_ from flynneva/devel
+  changed checkout branch name
+* changed checkout branch name
+* Merge pull request `#16 <https://github.com/flynneva/grbl_ros/issues/16>`_ from flynneva/devel
+  renamed and specified branch to checkout
+* renamed and specified branch to checkout
+* Merge pull request `#14 <https://github.com/flynneva/grbl_ros/issues/14>`_ from flynneva/devel
+  create dashing release candidate
+* create dashing release candidate
+* Update greetings.yml
+* Merge pull request `#12 <https://github.com/flynneva/grbl_ros/issues/12>`_ from flynneva/devel
+  vcs-repo-file-url param
+* rolling not valid for this setup-ros release
+  wait to switch to rolling until next setup-ros release
 * only run if issue has eloquent in the issue
 * eloquent release
 * only run eloquent on eloquent branches
@@ -59,6 +81,7 @@ Changelog for package grbl_ros
 * bump action-ros-ci & add vcs repo url
 * package should not be in matrix
 * Merge pull request `#10 <https://github.com/flynneva/grbl_ros/issues/10>`_ from flynneva/devel
+  added ros source binary for distro
 * bumped ros ci to 0.0.18
 * regressed to ros ci 0.0.15
 * specify target distro
@@ -66,6 +89,9 @@ Changelog for package grbl_ros
 * added ros source binary for distro
 * Merge pull request `#9 <https://github.com/flynneva/grbl_ros/issues/9>`_ from flynneva/devel
 * Merge pull request `#8 <https://github.com/flynneva/grbl_ros/issues/8>`_ from flynneva/update_readme
+  update readme and add release actions
+* Merge pull request `#8 <https://github.com/flynneva/grbl_ros/issues/8>`_ from flynneva/update_readme
+  Update readme & add release actions
 * added release actions
 * added testing section
 * forgot to add ubuntu
