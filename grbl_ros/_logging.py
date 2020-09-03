@@ -38,19 +38,22 @@ def getStatus(self):
                 self.s.flushInput()
                 return buffer_status
     elif(self.mode == self.MODE.DEBUG):
-        return "DEBUG GRBL device is happy!"
+        return 'DEBUG GRBL device is happy!'
     else:
-        return "UNDEFINED GRBL MODE"
+        return 'UNDEFINED GRBL MODE'
+
 
 def decodeStatus(self, status):
     if('error' in status):
         return STATUS(int(status.split(':', 1)[1])).name
     return status
 
+
 class MODE(Enum):
     # enum class for operation modes helpful for debugging
     NORMAL = 0
     DEBUG = 1
+
 
 class STATUS(Enum):
     # enum class for grbl error list

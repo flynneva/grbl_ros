@@ -30,6 +30,7 @@
 
 from ._logging import MODE
 
+
 class grbl:
 
     from ._logging import getStatus, decodeStatus, STATUS, MODE
@@ -37,7 +38,7 @@ class grbl:
         blockUntilIdle, clearAlarm, enableSteppers, disableSteppers
     from ._control import home, moveTo, moveRel, moveToOrigin
     from ._command import startup, shutdown, gcode, stream
-    
+
     def __init__(self):
         """
         Summary line.
@@ -46,7 +47,7 @@ class grbl:
 
         """
         # Default parameter values set in startup
-        self.mode = MODE.NORMAL 
+        self.mode = MODE.NORMAL
         self.s = None    # serial port object
         self.abs_move = None     # GRBL has 2 movement modes: relative and absolute
         self.baudrate = 0

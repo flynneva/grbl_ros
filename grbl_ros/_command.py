@@ -19,6 +19,7 @@
 # THE SOFTWARE.
 import serial
 
+
 def startup(self, port, baud, acc, maxx, maxy, maxz,
             spdf, spdx, spdy, spdz, stepsx, stepsy, stepsz):
     """
@@ -86,14 +87,14 @@ def shutdown(self):
 def gcode(self, gcode):
     # TODO(evanflynn): need to add some input checking to make sure its valid GCODE
     if(len(gcode) > 0):
-        if(self.mode == self.MODE.NORMAL): 
+        if(self.mode == self.MODE.NORMAL):
             self.s.write(str.encode(gcode + '\r\n'))
             return self.decodeStatus(self.s.readline().decode('utf-8').strip())
         elif(self.mode == self.MODE.DEBUG):
             # in debug mode just return the GCODE that was input
             return 'Sent: ' + gcode
     else:
-      return 'Input GCODE was blank'
+        return 'Input GCODE was blank'
 
 
 def stream(self, gcode_fpath):
@@ -101,6 +102,6 @@ def stream(self, gcode_fpath):
 
     for raw_line in f:
         line = raw_line.strip()  # strip all EOL characters for consistency
-        status = gcode(self, line) 
+        status = gcode(self, line)
         if(self.mode == self.MODE.DEBUG):
             print('    ' + status)
