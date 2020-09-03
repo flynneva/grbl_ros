@@ -36,17 +36,20 @@ class grbl_node(Node):
 
     def __init__(self):
         super().__init__(grbl_node_name)
+        self.get_logger().info('Initializing Publishers & Subscribers')
         self.pub_pos_ = self.create_publisher(Pose, grbl_node_name + '/position', 10)
         self.pub_status_ = self.create_publisher(String, grbl_node_name + '/status', 10)
         self.sub_cmd_ = self.create_subscription(
             String, grbl_node_name + '/send_gcode', self.gcodeCallback, 10)
+        self.sub_stream_ = self.create_subscription(
+            String, grbl_node_name + '/send_gcode_file', self.streamCallback, 10)
         self.sub_pose_ = self.create_subscription(
             Pose, grbl_node_name + '/set_pose', self.poseCallback, 10)
         self.sub_stop_ = self.create_subscription(
             String, grbl_node_name + '/stop', self.stopCallback, 10)
         self.sub_stop_  # prevent unused variable warning
 
-        # declare parameters
+        self.get_logger().info('Declaring ROS parameters')
         self.declare_parameter('port', '/dev/ttyUSB0')
         self.declare_parameter('baudrate', 115200)
         self.declare_parameter('acceleration', 1000)
@@ -61,6 +64,7 @@ class grbl_node(Node):
         self.declare_parameter('y_steps_mm', 100)
         self.declare_parameter('z_steps_mm', 100)
 
+        self.get_logger().info('Setting ROS parameters')
         port = self.get_parameter('port')
         baud = self.get_parameter('baudrate')
         acc = self.get_parameter('acceleration')    # axis acceleration (mm/s^2)
@@ -75,7 +79,9 @@ class grbl_node(Node):
         steps_y = self.get_parameter('y_steps_mm')      # axis steps per mm
         steps_z = self.get_parameter('z_steps_mm')      # axis steps per mm
 
+        self.get_logger().info('Initializing GRBL Device')
         self.grbl_obj = grbl()
+        self.get_logger().info('Starting up GRBL Device...')
         self.grbl_obj.startup(port.get_parameter_value().string_value,
                               baud.get_parameter_value().integer_value,
                               acc.get_parameter_value().integer_value,
@@ -89,9 +95,21 @@ class grbl_node(Node):
                               steps_x.get_parameter_value().integer_value,
                               steps_y.get_parameter_value().integer_value,
                               steps_z.get_parameter_value().integer_value)
-        self.wake()
-        self.refreshStatus()
-        self.refreshPosition()
+        if(self.grbl_obj.s):
+            self.wake()
+            self.refreshStatus()
+            self.refreshPosition()
+            self.get_logger().info('GRBL device ready')
+
+        else:
+            self.get_logger().warn('Could not detect GRBL device '
+                                   'on serial port ' + self.grbl_obj.port)
+            self.get_logger().warn('Are you sure the GRBL device '
+                                   'is connected and powered on?')
+            # TODO(evanflynn): set this to a different color so it stands out?
+            self.get_logger().info('Node running in `debug` mode')
+            self.get_logger().info('GRBL device operation may not function as expected')
+            self.grbl_obj.mode = self.grbl_obj.MODE.DEBUG
 
     def wake(self):
         self.grbl_obj.s.write(b'\r\n\r\n')
@@ -100,14 +118,21 @@ class grbl_node(Node):
 
     def refreshStatus(self):
         status = self.grbl_obj.getStatus()
-        for stat in status:
-            self.get_logger().info(stat)
-            if ('error' in stat):
-                # TODO(evanflynn): temp code to clear alarm error, should be user decision
-                self.get_logger().warn(self.grbl_obj.clearAlarm())
+        if(self.grbl_obj.mode == self.grbl_obj.MODE.NORMAL):
+            for stat in status:
+                self.get_logger().info(stat)
+                if ('error' in stat):
+                    # TODO(evanflynn): temp code to clear alarm error, should be user decision
+                    self.get_logger().warn(self.grbl_obj.clearAlarm())
+                ros_status = String()
+                ros_status.data = stat
+                self.pub_status_.publish(ros_status)
+        else:
+            self.get_logger().info(status)
             ros_status = String()
-            ros_status.data = stat
+            ros_status.data = status
             self.pub_status_.publish(ros_status)
+            
 
     def refreshPosition(self):
         pose = self.grbl_obj.getPose()
@@ -137,11 +162,21 @@ class grbl_node(Node):
         elif msg.data == 'f':
             self.grbl_obj.enableSteppers()
 
+    def streamCallback(self, msg):
+        self.get_logger().info('Sending GCODE file: ')
+        self.get_logger().info('  ' + msg.data)
+        # stream gcode file to grbl device
+        status = self.grbl_obj.stream(msg.data)
+        # TODO(evanflynn): have stream method return something useful
+        self.get_logger().info('GCODE file complete!')
+        self.refreshStatus()
+        self.refreshPosition()
+
 
 def main():
     rclpy.init()
-    interface = grbl()
-    rclpy.spin(interface)
+    node = grbl_node()
+    rclpy.spin(node)
 
 
 if __name__ == '__main__':
