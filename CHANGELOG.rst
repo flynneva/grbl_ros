@@ -2,7 +2,7 @@
 Changelog for package grbl_ros
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-0.0.11 (2020-09-03)
+0.0.12 (2020-09-03)
 -----------
 * bump version for dashing
 * Merge pull request `#54 <https://github.com/flynneva/grbl_ros/issues/54>`_ from flynneva/dashing-devel
