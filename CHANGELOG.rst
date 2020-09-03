@@ -2,6 +2,19 @@
 Changelog for package grbl_ros
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.2.1 (2020-09-03)
+------------------
+* bump version for foxy
+* added stream file function
+* fixed execution errors
+* Merge branch 'devel' into foxy-devel
+* moved grbl_device.py to _command.py
+* Merge pull request `#41 <https://github.com/flynneva/grbl_ros/issues/41>`_ from flynneva/foxy
+  Foxy
+* Merge pull request `#33 <https://github.com/flynneva/grbl_ros/issues/33>`_ from flynneva/restructure
+  Restructure
+* Contributors: Evan Flynn
+
 0.0.3 (2020-09-01)
 ------------------
 * Merge branch 'restructure' into foxy-devel
