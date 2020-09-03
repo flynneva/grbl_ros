@@ -28,8 +28,16 @@
 #   Future implementations might include control for other
 #   GCODE compatible systems
 
+from ._logging import MODE
+
 
 class grbl:
+
+    from ._logging import getStatus, decodeStatus, STATUS, MODE
+    from ._configure import getPose, setSpeed, setOrigin, ensureMovementMode, \
+        blockUntilIdle, clearAlarm, enableSteppers, disableSteppers
+    from ._control import home, moveTo, moveRel, moveToOrigin
+    from ._command import startup, shutdown, gcode, stream
 
     def __init__(self):
         """
@@ -39,6 +47,7 @@ class grbl:
 
         """
         # Default parameter values set in startup
+        self.mode = MODE.NORMAL
         self.s = None    # serial port object
         self.abs_move = None     # GRBL has 2 movement modes: relative and absolute
         self.baudrate = 0
@@ -59,9 +68,3 @@ class grbl:
         self.angular = [0.0, 0.0, 0.0, 0.0]  # quaterion  [X, Y, Z, W]
         self.origin = [0.0, 0.0, 0.0]        # minimum coordinates  [X, Y, Z]
         self.limits = [0.0, 0.0, 0.0]        # maximum coordinates  [X, Y, Z]
-
-    # Import Methods
-    from ._logging import getStatus, decodeStatus, STATUS
-    from ._configure import getPose, setSpeed, setOrigin, ensureMovementMode, blockUntilIdle, \
-        clearAlarm, enableSteppers, disableSteppers
-    from ._control import home, moveTo, moveRel, moveToOrigin
