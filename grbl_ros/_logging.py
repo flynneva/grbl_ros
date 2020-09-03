@@ -24,24 +24,35 @@ import time
 
 def getStatus(self):
     # TODO(evanflynn): status should be ROS msg?
-    self.s.write(b'?\n')
-    time.sleep(0.1)
-    buffer_status = []
-    status = ''
-    while True:
-        if (self.s.inWaiting()):
-            status = self.decodeStatus(self.s.readline().decode('utf-8').strip())
-            buffer_status.append(status)
-            status = ''
-        else:
-            self.s.flushInput()
-            return buffer_status
+    if(self.mode == self.MODE.NORMAL):
+        self.s.write(b'?\n')
+        time.sleep(0.1)
+        buffer_status = []
+        status = ''
+        while True:
+            if (self.s.inWaiting()):
+                status = self.decodeStatus(self.s.readline().decode('utf-8').strip())
+                buffer_status.append(status)
+                status = ''
+            else:
+                self.s.flushInput()
+                return buffer_status
+    elif(self.mode == self.MODE.DEBUG):
+        return 'DEBUG GRBL device is happy!'
+    else:
+        return 'UNDEFINED GRBL MODE'
 
 
 def decodeStatus(self, status):
     if('error' in status):
         return STATUS(int(status.split(':', 1)[1])).name
     return status
+
+
+class MODE(Enum):
+    # enum class for operation modes helpful for debugging
+    NORMAL = 0
+    DEBUG = 1
 
 
 class STATUS(Enum):
