@@ -60,18 +60,23 @@ def startup(self, port, baud, acc, maxx, maxy, maxz,
     self.y_steps_mm = stepsy
     self.z_steps_mm = stepsz
     self.limits = [self.x_max, self.y_max, self.z_max]
-    # initiates the serial port
-    self.s = serial.Serial(self.port, self.baudrate)
 
-    # set movement to Absolute coordinates
-    self.ensureMovementMode(True)
-    # start homing procedure
-    # TODO(flynneva): should this be done at startup?
-    # should probably be configurable by user
-    # self.home()
-    # TODO(flynneva): could cause issues if user is resuming a job
-    # set the current position as the origin (GRBL sometimes starts with z not 0)
-    # self.setOrigin()
+    # initiates the serial port
+    try:
+        self.s = serial.Serial(self.port, self.baudrate)
+        # set movement to Absolute coordinates
+        self.ensureMovementMode(True)
+        # start homing procedure
+        # TODO(flynneva): should this be done at startup?
+        # should probably be configurable by user
+        # self.home()
+        # TODO(flynneva): could cause issues if user is resuming a job
+        # set the current position as the origin (GRBL sometimes starts with z not 0)
+        # self.setOrigin()
+    except serial.serialutil.SerialException:
+        # Could not detect GRBL device on serial port ' + self.port
+        # Are you sure the GRBL device is connected and powered on?
+        return
 
 
 def shutdown(self):
@@ -80,6 +85,23 @@ def shutdown(self):
 
 
 def gcode(self, gcode):
-    # TODO(evanflynn): need to add some input checking
-    self.s.write(str.encode(gcode + '\r\n'))
-    return self.decodeStatus(self.s.readline().decode('utf-8').strip())
+    # TODO(evanflynn): need to add some input checking to make sure its valid GCODE
+    if(len(gcode) > 0):
+        if(self.mode == self.MODE.NORMAL):
+            self.s.write(str.encode(gcode + '\r\n'))
+            return self.decodeStatus(self.s.readline().decode('utf-8').strip())
+        elif(self.mode == self.MODE.DEBUG):
+            # in debug mode just return the GCODE that was input
+            return 'Sent: ' + gcode
+    else:
+        return 'Input GCODE was blank'
+
+
+def stream(self, gcode_fpath):
+    f = open(gcode_fpath, 'r')
+
+    for raw_line in f:
+        line = raw_line.strip()  # strip all EOL characters for consistency
+        status = gcode(self, line)
+        if(self.mode == self.MODE.DEBUG):
+            print('    ' + status)
