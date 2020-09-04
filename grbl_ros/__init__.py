@@ -33,11 +33,11 @@ from ._logging import MODE
 
 class grbl:
 
-    from ._logging import getStatus, decodeStatus, STATUS, MODE
-    from ._configure import getPose, setSpeed, setOrigin, ensureMovementMode, \
+    from ._logging import getStatus, getPose, decodeStatus, STATUS, MODE
+    from ._configure import setSpeed, setOrigin, ensureMovementMode, \
         blockUntilIdle, clearAlarm, enableSteppers, disableSteppers
     from ._control import home, moveTo, moveRel, moveToOrigin
-    from ._command import startup, shutdown, gcode, stream
+    from ._command import startup, shutdown, send, stream
 
     def __init__(self):
         """

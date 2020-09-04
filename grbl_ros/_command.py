@@ -66,9 +66,12 @@ def startup(self, port, baud, acc, maxx, maxy, maxz,
         self.s = serial.Serial(self.port, self.baudrate)
         # set movement to Absolute coordinates
         self.ensureMovementMode(True)
+        # try to get current position
+        # status = gcode(self, '?')
+
         # start homing procedure
         # TODO(flynneva): should this be done at startup?
-        # should probably be configurable by user
+        # should probably be configurable by user if they want to or not
         # self.home()
         # TODO(flynneva): could cause issues if user is resuming a job
         # set the current position as the origin (GRBL sometimes starts with z not 0)
@@ -84,7 +87,7 @@ def shutdown(self):
     self.s.close()
 
 
-def gcode(self, gcode):
+def send(self, gcode):
     # TODO(evanflynn): need to add some input checking to make sure its valid GCODE
     if(len(gcode) > 0):
         if(self.mode == self.MODE.NORMAL):
@@ -102,6 +105,6 @@ def stream(self, gcode_fpath):
 
     for raw_line in f:
         line = raw_line.strip()  # strip all EOL characters for consistency
-        status = gcode(self, line)
+        status = send(self, line)
         if(self.mode == self.MODE.DEBUG):
             print('    ' + status)

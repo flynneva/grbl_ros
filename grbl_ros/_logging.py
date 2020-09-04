@@ -21,10 +21,13 @@ from enum import Enum
 
 import time
 
+from geometry_msgs.msg import Pose
+
 
 def getStatus(self):
     # TODO(evanflynn): status should be ROS msg?
     if(self.mode == self.MODE.NORMAL):
+        # ? returns the active GRBL state & current machine and work positions
         self.s.write(b'?\n')
         time.sleep(0.1)
         buffer_status = []
@@ -41,6 +44,21 @@ def getStatus(self):
         return 'DEBUG GRBL device is happy!'
     else:
         return 'UNDEFINED GRBL MODE'
+
+
+def getPose(self):
+    pose = Pose()
+    pose.position.x = float(self.pos[0])
+    pose.position.y = float(self.pos[1])
+    pose.position.z = float(self.pos[2])
+    # this parameters are set to 0
+    # the cnc its a XYZ 3 DOF mechanism and doesnt need it
+    # TODO(evanflynn): could be useful for higher DOF machines?
+    pose.orientation.x = float(self.angular[0])
+    pose.orientation.y = float(self.angular[1])
+    pose.orientation.z = float(self.angular[2])
+    pose.orientation.w = float(self.angular[3])
+    return pose
 
 
 def decodeStatus(self, status):

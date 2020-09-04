@@ -19,23 +19,6 @@
 # THE SOFTWARE.
 import time
 
-from geometry_msgs.msg import Pose
-
-
-def getPose(self):
-    pose = Pose()
-    pose.position.x = float(self.pos[0])
-    pose.position.y = float(self.pos[1])
-    pose.position.z = float(self.pos[2])
-    # this parameters are set to 0
-    # the cnc its a XYZ 3 DOF mechanism and doesnt need it
-    # TODO(evanflynn): could be useful for higher DOF machines?
-    pose.orientation.x = float(self.angular[0])
-    pose.orientation.y = float(self.angular[1])
-    pose.orientation.z = float(self.angular[2])
-    pose.orientation.w = float(self.angular[3])
-    return pose
-
 
 def setSpeed(self, speed):
     self.defaultSpeed = speed
@@ -44,25 +27,25 @@ def setSpeed(self, speed):
 def setOrigin(self, x=0, y=0, z=0):
     # set current position to be (0,0,0), or a custom (x,y,z)
     gcode = 'G92 x{} y{} z{}\n'.format(x, y, z)
-    self.s.write(str.encode(gcode))
-    self.s.readline()
+    self.send(self, gcode)
     # update our internal location
     self.pos = [x, y, z]
 
 
 def clearAlarm(self):
-    self.s.write(b'$X\n')
-    return self.s.readline().decode('utf-8').strip()
+    return self.send(self, '$X')
 
 
 def enableSteppers(self):
-    self.s.write(b'M17\n')
-    return self.s.readline().decode('utf-8').strip()
+    return self.send(self, 'M17')
+
+
+def feedHold(self):
+    return self.send(self, '!')
 
 
 def disableSteppers(self):
-    self.s.write(b'M18\n')
-    return self.s.readline().decode('utf-8').strip()
+    return self.send(self, 'M18')
 
 
 def ensureMovementMode(self, absoluteMode=True):
@@ -82,8 +65,7 @@ def blockUntilIdle(self):
     # polls until GRBL indicates it is done with the last command
     pollcount = 0
     while True:
-        self.s.write(b'?\r\n')
-        status = self.s.readline()
+        status = self.send(self, '?')
         if status.startswith('<Idle'):
             break
         # not used
