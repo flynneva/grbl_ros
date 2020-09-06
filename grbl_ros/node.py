@@ -17,9 +17,10 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-import time
+import threading
 
 from geometry_msgs.msg import Pose
+from geometry_msgs.msg import TransformStamped
 
 from grbl_ros import grbl
 
@@ -28,6 +29,7 @@ import rclpy
 from rclpy.node import Node
 
 from std_msgs.msg import String
+from tf2_ros.transform_broadcaster import TransformBroadcaster
 
 grbl_node_name = 'cnc_001'
 
@@ -37,8 +39,10 @@ class grbl_node(Node):
     def __init__(self):
         super().__init__(grbl_node_name)
         self.get_logger().info('Initializing Publishers & Subscribers')
-        self.pub_pos_ = self.create_publisher(Pose, grbl_node_name + '/position', 10)
-        self.pub_status_ = self.create_publisher(String, grbl_node_name + '/status', 10)
+        self.pub_tf_ = TransformBroadcaster(self)
+        self.pub_mpos_ = self.create_publisher(Pose, grbl_node_name + '/machine_position', 5)
+        self.pub_wpos_ = self.create_publisher(Pose, grbl_node_name + '/work_position', 5)
+        self.pub_status_ = self.create_publisher(String, grbl_node_name + '/status', 5)
         self.sub_cmd_ = self.create_subscription(
             String, grbl_node_name + '/send_gcode', self.gcodeCallback, 10)
         self.sub_stream_ = self.create_subscription(
@@ -50,7 +54,7 @@ class grbl_node(Node):
         self.sub_stop_  # prevent unused variable warning
 
         self.get_logger().info('Declaring ROS parameters')
-        self.declare_parameter('port', '/dev/ttyUSB0')
+        self.declare_parameter('port', '/tmp/ttyFAKE')
         self.declare_parameter('baudrate', 115200)
         self.declare_parameter('acceleration', 1000)
         self.declare_parameter('x_max', 50)
@@ -96,9 +100,7 @@ class grbl_node(Node):
                               steps_y.get_parameter_value().integer_value,
                               steps_z.get_parameter_value().integer_value)
         if(self.grbl_obj.s):
-            self.wake()
-            self.refreshStatus()
-            self.refreshPosition()
+            self.grbl_obj.getStatus()
             self.get_logger().info('GRBL device ready')
 
         else:
@@ -111,47 +113,18 @@ class grbl_node(Node):
             self.get_logger().info('GRBL device operation may not function as expected')
             self.grbl_obj.mode = self.grbl_obj.MODE.DEBUG
 
-    def wake(self):
-        self.grbl_obj.s.write(b'\r\n\r\n')
-        time.sleep(2)   # wait for grbl to initialize
-        self.grbl_obj.s.flushInput()
-
-    def refreshStatus(self):
-        status = self.grbl_obj.getStatus()
-        if(self.grbl_obj.mode == self.grbl_obj.MODE.NORMAL):
-            for stat in status:
-                self.get_logger().info(stat)
-                if ('error' in stat):
-                    # TODO(evanflynn): temp code to clear alarm error, should be user decision
-                    self.get_logger().warn(self.grbl_obj.clearAlarm())
-                ros_status = String()
-                ros_status.data = stat
-                self.pub_status_.publish(ros_status)
-        else:
-            self.get_logger().info(status)
-            ros_status = String()
-            ros_status.data = status
-            self.pub_status_.publish(ros_status)
-
-    def refreshPosition(self):
-        pose = self.grbl_obj.getPose()
-        self.pub_pos_.publish(pose)
-
     def poseCallback(self, msg):
         self.grbl_obj.moveTo(msg.position.x,
                              msg.position.y,
                              msg.position.z,
                              blockUntilComplete=True)
-        self.refreshStatus()
-        self.refreshPosition()
 
     def gcodeCallback(self, msg):
         self.get_logger().info('Sending GCODE command: ' + msg.data)
-        status = self.grbl_obj.gcode(msg.data)
+        status = self.grbl_obj.send(str(msg.data))
         # warn user of grbl response
         self.get_logger().warn(status)
-        self.refreshStatus()
-        self.refreshPosition()
+        self.grbl_obj.getStatus()
 
     def stopCallback(self, msg):
         # stop steppers
@@ -167,16 +140,84 @@ class grbl_node(Node):
         # stream gcode file to grbl device
         status = self.grbl_obj.stream(msg.data)
         # TODO(evanflynn): have stream method return something useful
-        self.get_logger().info(str(status))
+        self.get_logger().info(status)
         self.get_logger().info('GCODE file complete!')
-        self.refreshStatus()
-        self.refreshPosition()
+
+    def pub_status_thread(self):
+        transforms = []
+        msg = String()
+        status = self.grbl_obj.getStatus()
+        for line in status.split():
+            msg.data = line.rstrip('\r\n')
+            self.pub_status_.publish(msg)
+            if(line.find('<') > -1):
+                m_tf = TransformStamped()
+                m_tf.header.frame_id = 'base_link'
+                m_tf.header.stamp = self.get_clock().now().to_msg()
+                m_tf.child_frame_id = grbl_node_name + '_machine'
+
+                w_tf = TransformStamped()
+                w_tf.header.frame_id = 'workpiece'
+                w_tf.header.stamp = self.get_clock().now().to_msg()
+                w_tf.child_frame_id = grbl_node_name
+
+                coord = line[(line.find('MPos')+5):].split(',')
+
+                m_x = float(coord[0]) / 1000.0
+                m_y = float(coord[1]) / 1000.0
+                m_z = float(coord[2]) / 1000.0
+
+                w_x = float(coord[3].split(':')[1]) / 1000.0
+                w_y = float(coord[4]) / 1000.0
+                w_z = float(coord[5][:-1]) / 1000.0
+
+                m_pose = Pose()
+                w_pose = Pose()
+
+                m_pose.position.x = m_x
+                m_pose.position.y = m_y
+                m_pose.position.z = m_z
+
+                m_tf.transform.translation.x = m_x
+                m_tf.transform.translation.y = m_y
+                m_tf.transform.translation.z = m_z
+
+                w_pose.position.x = w_x
+                w_pose.position.y = w_y
+                w_pose.position.z = w_z
+
+                w_tf.transform.translation.x = w_x
+                w_tf.transform.translation.y = w_y
+                w_tf.transform.translation.z = w_z
+
+                self.pub_mpos_.publish(m_pose)
+                self.pub_wpos_.publish(w_pose)
+
+                transforms.append(m_tf)
+                transforms.append(w_tf)
+
+                self.pub_tf_.sendTransform(transforms)
 
 
 def main():
     rclpy.init()
     node = grbl_node()
-    rclpy.spin(node)
+
+    # Spin in a separate thread
+    thread = threading.Thread(target=rclpy.spin, args=(node, ), daemon=True)
+    thread.start()
+
+    rate = node.create_rate(10)
+
+    try:
+        while rclpy.ok():
+            node.pub_status_thread()
+            rate.sleep()
+    except KeyboardInterrupt:
+        pass
+
+    rclpy.shutdown()
+    thread.join()
 
 
 if __name__ == '__main__':

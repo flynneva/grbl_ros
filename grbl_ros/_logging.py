@@ -29,17 +29,9 @@ def getStatus(self):
     if(self.mode == self.MODE.NORMAL):
         # ? returns the active GRBL state & current machine and work positions
         self.s.write(b'?\n')
-        time.sleep(0.1)
-        buffer_status = []
-        status = ''
-        while True:
-            if (self.s.inWaiting()):
-                status = self.decodeStatus(self.s.readline().decode('utf-8').strip())
-                buffer_status.append(status)
-                status = ''
-            else:
-                self.s.flushInput()
-                return buffer_status
+        time.sleep(0.01)
+        status = self.s.read(self.s.inWaiting()).decode('utf-8')
+        return status
     elif(self.mode == self.MODE.DEBUG):
         return 'DEBUG GRBL device is happy!'
     else:
@@ -63,8 +55,13 @@ def getPose(self):
 
 def decodeStatus(self, status):
     if('error' in status):
-        return STATUS(int(status.split(':', 1)[1])).name
-    return status
+        err = status.split(':', 1)[1]
+        if(type(err) == int()):
+            return STATUS(int(status.split(':', 1)[1])).name
+        else:
+            return err
+    else:
+        return status
 
 
 class MODE(Enum):

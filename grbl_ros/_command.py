@@ -91,6 +91,7 @@ def send(self, gcode):
     # TODO(evanflynn): need to add some input checking to make sure its valid GCODE
     if(len(gcode) > 0):
         if(self.mode == self.MODE.NORMAL):
+            print(gcode)
             self.s.write(str.encode(gcode + '\r\n'))
             return self.decodeStatus(self.s.readline().decode('utf-8').strip())
         elif(self.mode == self.MODE.DEBUG):
@@ -108,3 +109,4 @@ def stream(self, gcode_fpath):
         status = send(self, line)
         if(self.mode == self.MODE.DEBUG):
             print('    ' + status)
+        return 'ok'
