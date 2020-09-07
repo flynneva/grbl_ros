@@ -28,10 +28,7 @@ def getStatus(self):
     # TODO(evanflynn): status should be ROS msg?
     if(self.mode == self.MODE.NORMAL):
         # ? returns the active GRBL state & current machine and work positions
-        self.s.write(b'?\n')
-        time.sleep(0.01)
-        status = self.s.read(self.s.inWaiting()).decode('utf-8')
-        return status
+        return self.send('?')
     elif(self.mode == self.MODE.DEBUG):
         return 'DEBUG GRBL device is happy!'
     else:

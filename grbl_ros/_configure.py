@@ -65,10 +65,12 @@ def blockUntilIdle(self):
     # polls until GRBL indicates it is done with the last command
     pollcount = 0
     while True:
-        status = self.send(self, '?')
+        status = self.send('?')
+        print(status)
+        print(pollcount)
         if status.startswith('<Idle'):
             break
         # not used
         pollcount += 1
-        # poll every 10 ms
-        time.sleep(.01)
+        # poll at 5 Hz
+        time.sleep(.2)

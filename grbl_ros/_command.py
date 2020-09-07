@@ -17,8 +17,9 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-import serial
+import time
 
+import serial
 
 def startup(self, port, baud, acc, maxx, maxy, maxz,
             spdf, spdx, spdy, spdz, stepsx, stepsy, stepsz):
@@ -48,6 +49,7 @@ def startup(self, port, baud, acc, maxx, maxy, maxz,
     # initiate all CNC parameters read from .launch file
     self.baudrate = baud
     self.port = port
+    self.timeout = 1
     self.acceleration = acc
     self.x_max = maxx
     self.y_max = maxy
@@ -63,7 +65,7 @@ def startup(self, port, baud, acc, maxx, maxy, maxz,
 
     # initiates the serial port
     try:
-        self.s = serial.Serial(self.port, self.baudrate)
+        self.s = serial.Serial(port=self.port, baudrate=self.baudrate, timeout=self.timeout)
         # set movement to Absolute coordinates
         self.ensureMovementMode(True)
         # try to get current position
@@ -91,9 +93,10 @@ def send(self, gcode):
     # TODO(evanflynn): need to add some input checking to make sure its valid GCODE
     if(len(gcode) > 0):
         if(self.mode == self.MODE.NORMAL):
-            print(gcode)
             self.s.write(str.encode(gcode + '\r\n'))
-            return self.decodeStatus(self.s.readline().decode('utf-8').strip())
+            time.sleep(0.175)
+            response = self.s.read(self.s.inWaiting()).decode('utf-8')
+            return response
         elif(self.mode == self.MODE.DEBUG):
             # in debug mode just return the GCODE that was input
             return 'Sent: ' + gcode
@@ -107,6 +110,8 @@ def stream(self, gcode_fpath):
     for raw_line in f:
         line = raw_line.strip()  # strip all EOL characters for consistency
         status = send(self, line)
+        self.blockUntilIdle()
         if(self.mode == self.MODE.DEBUG):
             print('    ' + status)
-        return 'ok'
+    
+    return 'ok'

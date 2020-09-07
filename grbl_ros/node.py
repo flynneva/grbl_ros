@@ -146,20 +146,22 @@ class grbl_node(Node):
     def pub_status_thread(self):
         transforms = []
         msg = String()
+        # getStatus has to wait for response over serial
         status = self.grbl_obj.getStatus()
         for line in status.split():
             msg.data = line.rstrip('\r\n')
             self.pub_status_.publish(msg)
             if(line.find('<') > -1):
+                self.get_logger().info(line)
                 m_tf = TransformStamped()
                 m_tf.header.frame_id = 'base_link'
                 m_tf.header.stamp = self.get_clock().now().to_msg()
                 m_tf.child_frame_id = grbl_node_name + '_machine'
 
                 w_tf = TransformStamped()
-                w_tf.header.frame_id = 'workpiece'
+                w_tf.header.frame_id = 'base_link'
                 w_tf.header.stamp = self.get_clock().now().to_msg()
-                w_tf.child_frame_id = grbl_node_name
+                w_tf.child_frame_id = grbl_node_name + '_workpiece'
 
                 coord = line[(line.find('MPos')+5):].split(',')
 
@@ -207,7 +209,7 @@ def main():
     thread = threading.Thread(target=rclpy.spin, args=(node, ), daemon=True)
     thread.start()
 
-    rate = node.create_rate(10)
+    rate = node.create_rate(5)
 
     try:
         while rclpy.ok():
