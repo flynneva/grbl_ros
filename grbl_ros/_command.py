@@ -21,7 +21,8 @@ import time
 
 import serial
 
-def startup(self, port, baud, acc, maxx, maxy, maxz,
+
+def startup(self, machine_id, port, baud, acc, maxx, maxy, maxz,
             spdf, spdx, spdy, spdz, stepsx, stepsy, stepsz):
     """
     Summary line.
@@ -47,6 +48,7 @@ def startup(self, port, baud, acc, maxx, maxy, maxz,
 
     """
     # initiate all CNC parameters read from .launch file
+    self.machine_id = machine_id
     self.baudrate = baud
     self.port = port
     self.timeout = 1
@@ -110,8 +112,9 @@ def stream(self, gcode_fpath):
     for raw_line in f:
         line = raw_line.strip()  # strip all EOL characters for consistency
         status = send(self, line)
-        self.blockUntilIdle()
+        if(self.mode == self.MODE.NORMAL):
+            self.blockUntilIdle()
         if(self.mode == self.MODE.DEBUG):
             print('    ' + status)
-    
+
     return 'ok'

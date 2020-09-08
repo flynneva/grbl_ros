@@ -19,8 +19,6 @@
 # THE SOFTWARE.
 from enum import Enum
 
-import time
-
 from geometry_msgs.msg import Pose
 
 

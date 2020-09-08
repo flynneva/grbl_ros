@@ -50,6 +50,7 @@ class grbl:
         self.mode = MODE.NORMAL
         self.s = None    # serial port object
         self.abs_move = None     # GRBL has 2 movement modes: relative and absolute
+        self.machine_id = 'cnc_000'
         self.baudrate = 0
         self.port = ''
         self.acceleration = 0

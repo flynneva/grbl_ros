@@ -31,13 +31,34 @@ from rclpy.node import Node
 from std_msgs.msg import String
 from tf2_ros.transform_broadcaster import TransformBroadcaster
 
-grbl_node_name = 'cnc_001'
-
 
 class grbl_node(Node):
 
     def __init__(self):
-        super().__init__(grbl_node_name)
+        # TODO(evanflynn): init node with machine_id param input or arg
+        super().__init__('grbl_device')
+
+        self.get_logger().info('Declaring ROS parameters')
+        self.declare_parameters(
+            namespace='',
+            parameters=[
+                ('machine_id', None),
+                ('port', None),
+                ('baudrate', None),
+                ('acceleration', None),  # mm / min^2
+                ('x_max', None),  # mm
+                ('y_max', None),  # mm
+                ('z_max', None),  # mm
+                ('default_v', None),  # mm / min
+                ('x_max_v', None),  # mm / min
+                ('y_max_v', None),  # mm / min
+                ('z_max_v', None),  # mm / min
+                ('x_steps', None),  # mm
+                ('y_steps', None),  # mm
+                ('z_steps', None),  # mm
+            ])
+
+        grbl_node_name = self.get_parameter('machine_id').get_parameter_value().string_value
         self.get_logger().info('Initializing Publishers & Subscribers')
         self.pub_tf_ = TransformBroadcaster(self)
         self.pub_mpos_ = self.create_publisher(Pose, grbl_node_name + '/machine_position', 5)
@@ -53,21 +74,6 @@ class grbl_node(Node):
             String, grbl_node_name + '/stop', self.stopCallback, 10)
         self.sub_stop_  # prevent unused variable warning
 
-        self.get_logger().info('Declaring ROS parameters')
-        self.declare_parameter('port', '/tmp/ttyFAKE')
-        self.declare_parameter('baudrate', 115200)
-        self.declare_parameter('acceleration', 1000)
-        self.declare_parameter('x_max', 50)
-        self.declare_parameter('y_max', 50)
-        self.declare_parameter('z_max', 50)
-        self.declare_parameter('default_speed', 100)
-        self.declare_parameter('x_max_speed', 100)
-        self.declare_parameter('y_max_speed', 100)
-        self.declare_parameter('z_max_speed', 100)
-        self.declare_parameter('x_steps_mm', 100)
-        self.declare_parameter('y_steps_mm', 100)
-        self.declare_parameter('z_steps_mm', 100)
-
         self.get_logger().info('Setting ROS parameters')
         port = self.get_parameter('port')
         baud = self.get_parameter('baudrate')
@@ -75,18 +81,19 @@ class grbl_node(Node):
         max_x = self.get_parameter('x_max')           # workable travel (mm)
         max_y = self.get_parameter('y_max')           # workable travel (mm)
         max_z = self.get_parameter('x_max')           # workable travel (mm)
-        default_speed = self.get_parameter('default_speed')   # mm/min
-        speed_x = self.get_parameter('x_max_speed')     # mm/min
-        speed_y = self.get_parameter('y_max_speed')     # mm/min
-        speed_z = self.get_parameter('z_max_speed')     # mm/min
-        steps_x = self.get_parameter('x_steps_mm')      # axis steps per mm
-        steps_y = self.get_parameter('y_steps_mm')      # axis steps per mm
-        steps_z = self.get_parameter('z_steps_mm')      # axis steps per mm
+        default_speed = self.get_parameter('default_v')   # mm/min
+        speed_x = self.get_parameter('x_max_v')     # mm/min
+        speed_y = self.get_parameter('y_max_v')     # mm/min
+        speed_z = self.get_parameter('z_max_v')     # mm/min
+        steps_x = self.get_parameter('x_steps')      # axis steps per mm
+        steps_y = self.get_parameter('y_steps')      # axis steps per mm
+        steps_z = self.get_parameter('z_steps')      # axis steps per mm
 
         self.get_logger().info('Initializing GRBL Device')
         self.grbl_obj = grbl()
         self.get_logger().info('Starting up GRBL Device...')
-        self.grbl_obj.startup(port.get_parameter_value().string_value,
+        self.grbl_obj.startup(grbl_node_name,
+                              port.get_parameter_value().string_value,
                               baud.get_parameter_value().integer_value,
                               acc.get_parameter_value().integer_value,
                               max_x.get_parameter_value().integer_value,
@@ -102,7 +109,6 @@ class grbl_node(Node):
         if(self.grbl_obj.s):
             self.grbl_obj.getStatus()
             self.get_logger().info('GRBL device ready')
-
         else:
             self.get_logger().warn('Could not detect GRBL device '
                                    'on serial port ' + self.grbl_obj.port)
@@ -152,16 +158,16 @@ class grbl_node(Node):
             msg.data = line.rstrip('\r\n')
             self.pub_status_.publish(msg)
             if(line.find('<') > -1):
-                self.get_logger().info(line)
+                # self.get_logger().info(line)
                 m_tf = TransformStamped()
                 m_tf.header.frame_id = 'base_link'
                 m_tf.header.stamp = self.get_clock().now().to_msg()
-                m_tf.child_frame_id = grbl_node_name + '_machine'
+                m_tf.child_frame_id = self.get_parameter().machine_id + '_machine'
 
                 w_tf = TransformStamped()
                 w_tf.header.frame_id = 'base_link'
                 w_tf.header.stamp = self.get_clock().now().to_msg()
-                w_tf.child_frame_id = grbl_node_name + '_workpiece'
+                w_tf.child_frame_id = self.get_parameter().machine_id + '_workpiece'
 
                 coord = line[(line.find('MPos')+5):].split(',')
 
@@ -201,8 +207,8 @@ class grbl_node(Node):
                 self.pub_tf_.sendTransform(transforms)
 
 
-def main():
-    rclpy.init()
+def main(args=None):
+    rclpy.init(args=args)
     node = grbl_node()
 
     # Spin in a separate thread

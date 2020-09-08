@@ -66,8 +66,6 @@ def blockUntilIdle(self):
     pollcount = 0
     while True:
         status = self.send('?')
-        print(status)
-        print(pollcount)
         if status.startswith('<Idle'):
             break
         # not used

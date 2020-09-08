@@ -17,27 +17,40 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-import os
+from grbl_interfaces.srv import CreateDevice
 
-from ament_index_python.packages import get_package_share_directory
-from launch import LaunchDescription
-from launch_ros.actions import Node
+import rclpy
+
+from rclpy.node import Node
+
+node_name = 'grbl_services'
 
 
-def generate_launch_description():
-    ld = LaunchDescription()
+class grbl_service(Node):
 
-    # TODO(evanflynn): add a for loop here to loop over each YAML file
-    config = os.path.join(
-        get_package_share_directory('grbl_ros'),
-        'config',
-        'cnc001.yaml')
+    def __init__(self):
+        super().__init__(node_name)
 
-    node = Node(
-        package='grbl_ros',
-        name='cnc_001',
-        executable='grbl_node',
-        parameters=[config])
+        self.get_logger().info('Initializing GRBL Device Services')
+        self.srv_create_ = self.create_service(
+            CreateDevice, node_name + '/create_grbl_device', self.create_callback)
 
-    ld.add_action(node)
-    return ld
+    def create_callback(self, request, response):
+        self.get_logger().warn('creating grbl device:')
+        self.get_logger().warn('    machine id: ' + request.machine_id)
+        self.get_logger().warn('    port:       ' + request.port)
+
+    def shutdown_callback(self, request, response):
+        self.get_logger().info('shutting down grbl device')
+
+
+def main():
+    rclpy.init()
+    node = grbl_service()
+
+    rclpy.spin(node)
+    rclpy.shutdown()
+
+
+if __name__ == '__main__':
+    main()
