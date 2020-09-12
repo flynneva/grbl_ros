@@ -75,6 +75,7 @@ class grbl_node(Node):
         self.sub_stop_  # prevent unused variable warning
 
         self.get_logger().info('Setting ROS parameters')
+        self.name = self.get_parameter('machine_id').get_parameter_value().string_value
         port = self.get_parameter('port')
         baud = self.get_parameter('baudrate')
         acc = self.get_parameter('acceleration')    # axis acceleration (mm/s^2)
@@ -157,30 +158,26 @@ class grbl_node(Node):
         for line in status.split():
             msg.data = line.rstrip('\r\n')
             self.pub_status_.publish(msg)
-            if(line.find('<') > -1):
+            print(line)
+            if(line.find('<') > -1 and line.find('MPos') > -1):
                 # self.get_logger().info(line)
                 m_tf = TransformStamped()
                 m_tf.header.frame_id = 'base_link'
                 m_tf.header.stamp = self.get_clock().now().to_msg()
-                m_tf.child_frame_id = self.get_parameter().machine_id + '_machine'
+                m_tf.child_frame_id = self.name + '_machine'
 
                 w_tf = TransformStamped()
                 w_tf.header.frame_id = 'base_link'
                 w_tf.header.stamp = self.get_clock().now().to_msg()
-                w_tf.child_frame_id = self.get_parameter().machine_id + '_workpiece'
+                w_tf.child_frame_id = self.name + '_workpiece'
 
                 coord = line[(line.find('MPos')+5):].split(',')
 
                 m_x = float(coord[0]) / 1000.0
                 m_y = float(coord[1]) / 1000.0
-                m_z = float(coord[2]) / 1000.0
-
-                w_x = float(coord[3].split(':')[1]) / 1000.0
-                w_y = float(coord[4]) / 1000.0
-                w_z = float(coord[5][:-1]) / 1000.0
+                m_z = float(coord[2].split('|')[0]) / 1000.0
 
                 m_pose = Pose()
-                w_pose = Pose()
 
                 m_pose.position.x = m_x
                 m_pose.position.y = m_y
@@ -190,19 +187,26 @@ class grbl_node(Node):
                 m_tf.transform.translation.y = m_y
                 m_tf.transform.translation.z = m_z
 
-                w_pose.position.x = w_x
-                w_pose.position.y = w_y
-                w_pose.position.z = w_z
-
-                w_tf.transform.translation.x = w_x
-                w_tf.transform.translation.y = w_y
-                w_tf.transform.translation.z = w_z
-
                 self.pub_mpos_.publish(m_pose)
-                self.pub_wpos_.publish(w_pose)
 
                 transforms.append(m_tf)
-                transforms.append(w_tf)
+                
+                if(line.find('WPos') > -1):
+                    w_x = float(coord[3].split(':')[1]) / 1000.0
+                    w_y = float(coord[4]) / 1000.0
+                    w_z = float(coord[5][:-1]) / 1000.0
+
+                    w_pose = Pose()
+                    w_pose.position.x = w_x
+                    w_pose.position.y = w_y
+                    w_pose.position.z = w_z
+
+                    w_tf.transform.translation.x = w_x
+                    w_tf.transform.translation.y = w_y
+                    w_tf.transform.translation.z = w_z
+
+                    self.pub_wpos_.publish(w_pose)
+                    transforms.append(w_tf)
 
                 self.pub_tf_.sendTransform(transforms)
 

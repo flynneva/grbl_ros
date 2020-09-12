@@ -1,7 +1,7 @@
 cnc_001:
   ros__parameters:
     machine_id: cnc_001
-    port: /tmp/ttyFAKE
+    port: /dev/ttyUSB0
     baudrate: 115200
     x_max: 300  # mm
     y_max: 200  # mm
