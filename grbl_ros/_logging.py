@@ -17,7 +17,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-from enum import Enum
+from enum import IntEnum
 
 from geometry_msgs.msg import Pose
 
@@ -32,6 +32,15 @@ def getStatus(self):
     else:
         return 'UNDEFINED GRBL MODE'
 
+def getSettings(self):
+    # TODO(evanflynn): status should be ROS msg?
+    if(self.mode == self.MODE.NORMAL):
+        # ? returns the active GRBL state & current machine and work positions
+        return self.send('$$')
+    elif(self.mode == self.MODE.DEBUG):
+        return 'DEBUG GRBL device is happy!'
+    else:
+        return 'UNDEFINED GRBL MODE'
 
 def getPose(self):
     pose = Pose()
@@ -59,13 +68,18 @@ def decodeStatus(self, status):
         return status
 
 
-class MODE(Enum):
+class MODE(IntEnum):
     # enum class for operation modes helpful for debugging
     NORMAL = 0
     DEBUG = 1
 
+class STATE(IntEnum):
+   # enum class for operation states
+   IDLE = 0
+   RUNNING = 1
+   ALARM = 2
 
-class STATUS(Enum):
+class STATUS(IntEnum):
     # enum class for grbl error list
     # http://domoticx.com/cnc-machine-grbl-error-list/
     NO_ERROR = 0

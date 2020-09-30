@@ -33,7 +33,7 @@ def setOrigin(self, x=0, y=0, z=0):
 
 
 def clearAlarm(self):
-    return self.send(self, '$X')
+    return self.send(self, '\$X')
 
 
 def enableSteppers(self):
@@ -41,7 +41,7 @@ def enableSteppers(self):
 
 
 def feedHold(self):
-    return self.send(self, '!')
+    return self.send(self, '\!')
 
 
 def disableSteppers(self):
@@ -59,16 +59,3 @@ def ensureMovementMode(self, absoluteMode=True):
     else:
         self.s.write(b'G91\r\n')  # relative movement mode
         self.s.readline()
-
-
-def blockUntilIdle(self):
-    # polls until GRBL indicates it is done with the last command
-    pollcount = 0
-    while True:
-        status = self.send('?')
-        if status.startswith('<Idle'):
-            break
-        # not used
-        pollcount += 1
-        # poll at 5 Hz
-        time.sleep(.2)

@@ -18,14 +18,18 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 import threading
+import time
 
 from geometry_msgs.msg import Pose
 from geometry_msgs.msg import TransformStamped
 
 from grbl_ros import grbl
-from grbl_msgs.srv import SetPose, Stop, SendGcodeCmd, SendGcodeFile
+from grbl_msgs.msg import State
+from grbl_msgs.srv import Stop
+from grbl_msgs.action import SendGcodeCmd
 
 import rclpy
+from rclpy.action import ActionServer
 
 from rclpy.node import Node
 
@@ -61,18 +65,20 @@ class grbl_node(Node):
 
         grbl_node_name = self.get_parameter('machine_id').get_parameter_value().string_value
         self.get_logger().info('Initializing Publishers & Subscribers')
+        # Initialize Publishers
         self.pub_tf_ = TransformBroadcaster(self)
         self.pub_mpos_ = self.create_publisher(Pose, grbl_node_name + '/machine_position', 5)
         self.pub_wpos_ = self.create_publisher(Pose, grbl_node_name + '/work_position', 5)
-        self.pub_status_ = self.create_publisher(String, grbl_node_name + '/status', 5)
-        self.srv_cmd_ = self.create_service(
-            SendGcodeCmd, grbl_node_name + '/send_gcode', self.gcodeCallback)
-        self.srv_stream_ = self.create_service(
-            SendGcodeFile, grbl_node_name + '/send_gcode_file', self.streamCallback)
-        self.srv_pose_ = self.create_service(
-            SetPose, grbl_node_name + '/set_pose', self.poseCallback)
+        self.pub_state_ = self.create_publisher(State, grbl_node_name + '/state', 5)
+        # Initialize Services 
         self.srv_stop_ = self.create_service(
             Stop, grbl_node_name + '/stop', self.stopCallback)
+        # Initialize Actions
+        self.action_send_gcode_ = ActionServer(
+                self,
+                SendGcodeCmd,
+                'send_gcode_cmd',
+                self.gcodeCallback)
 
         self.get_logger().info('Setting ROS parameters')
         self.name = self.get_parameter('machine_id').get_parameter_value().string_value
@@ -91,9 +97,9 @@ class grbl_node(Node):
         steps_z = self.get_parameter('z_steps')      # axis steps per mm
 
         self.get_logger().info('Initializing GRBL Device')
-        self.grbl_obj = grbl(self)
+        self.machine = grbl(self)
         self.get_logger().info('Starting up GRBL Device...')
-        self.grbl_obj.startup(grbl_node_name,
+        self.machine.startup(grbl_node_name,
                               port.get_parameter_value().string_value,
                               baud.get_parameter_value().integer_value,
                               acc.get_parameter_value().integer_value,
@@ -107,45 +113,70 @@ class grbl_node(Node):
                               steps_x.get_parameter_value().integer_value,
                               steps_y.get_parameter_value().integer_value,
                               steps_z.get_parameter_value().integer_value)
-        if(self.grbl_obj.s):
-            self.grbl_obj.getStatus()
+        if(self.machine.s):
+            self.machine.getStatus()
+            self.machine.getSettings()
             self.get_logger().info('GRBL device ready')
         else:
             self.get_logger().warn('Could not detect GRBL device '
-                                   'on serial port ' + self.grbl_obj.port)
+                                   'on serial port ' + self.machine.port)
             self.get_logger().warn('Are you sure the GRBL device '
                                    'is connected and powered on?')
             # TODO(evanflynn): set this to a different color so it stands out?
             self.get_logger().info('Node running in `debug` mode')
             self.get_logger().info('GRBL device operation may not function as expected')
-            self.grbl_obj.mode = self.grbl_obj.MODE.DEBUG
+            self.machine.mode = self.grbl_obj.MODE.DEBUG
 
     def poseCallback(self, request, response):
-        self.grbl_obj.moveTo(request.position.x,
+        self.machine.moveTo(request.position.x,
                              request.position.y,
                              request.position.z,
                              blockUntilComplete=True)
         return response
 
-    def gcodeCallback(self, request, response):
-        status = self.grbl_obj.send(str(request.command))
-        if(status == 'ok'):
-            response.success = True
-        return response
+    def gcodeCallback(self, goal_handle):
+        result = SendGcodeCmd.Result()
+        status = self.machine.send(str(goal_handle.request.command))
+        if(status.find('error') > -1):
+            # grbl device returned error code
+            self.get_logger().warn(status)
+            result.success = False
+        elif(status.find('ok') > -1):
+            # grbl device running command
+            # check state
+            self.machine.send(str('?'))
+            if(self.machine.state == self.machine.STATE.RUNNING):
+                # machine still running command
+                # wait until machine is idle
+                while self.machine.state == self.machine.STATE.RUNNING:
+                    # poll status, publish position
+                    self.get_logger().warn('machine is running')
+                    time.sleep(1)
+                    self.machine.send(str('?'))
+            elif(self.machine.state == self.machine.STATE.ALARM):
+                # machine alarm is still active
+                self.get_logger().warn('ALARM')
+            goal_handle.succeed()
+            result.success = True
+        else:
+            # grbl device returned unknown
+            self.get_logger().warn(status)
+            result.success = False
+        return result
 
     def stopCallback(self, request, response):
         # stop steppers
         if request.data == 's':
-            self.grbl_obj.disableSteppers()
+            self.machine.disableSteppers()
             # fire steppers
         elif request.data == 'f':
-            self.grbl_obj.enableSteppers()
+            self.machine.enableSteppers()
 
     def streamCallback(self, request, response):
         self.get_logger().info('Sending GCODE file: ')
         self.get_logger().info('  ' + request.filepath)
         # stream gcode file to grbl device
-        status = self.grbl_obj.stream(request.filepath)
+        status = self.machine.stream(request.filepath)
         # TODO(evanflynn): have stream method return something useful
         self.get_logger().info('GCODE file complete!')
 
@@ -153,7 +184,7 @@ class grbl_node(Node):
         transforms = []
         msg = String()
         # getStatus has to wait for response over serial
-        status = self.grbl_obj.getStatus()
+        status = self.machine.getStatus()
         for line in status.split():
             msg.data = line.rstrip('\r\n')
             self.pub_status_.publish(msg)

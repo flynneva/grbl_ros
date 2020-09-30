@@ -22,6 +22,7 @@ import time
 import serial
 
 from std_msgs.msg import String
+from grbl_msgs.msg import State
 
 def startup(self, machine_id, port, baud, acc, maxx, maxy, maxz,
             spdf, spdx, spdy, spdz, stepsx, stepsy, stepsz):
@@ -104,7 +105,7 @@ def send(self, gcode):
             while (self.s.inWaiting() > 0):
                 responses.append(self.s.readline().decode('utf-8').strip())
             
-            handle_responses(self, responses)
+            handle_responses(self, responses, gcode)
             # last response should always be the state of grbl
             return responses[-1]
         elif(self.mode == self.MODE.DEBUG):
@@ -113,19 +114,31 @@ def send(self, gcode):
     else:
         return 'Input GCODE was blank'
 
-def handle_responses(self, responses):
+def handle_responses(self, responses, cmd):
     msg = String()
+    state_msg = State()
+    state_msg.header.stamp = self.node.get_clock().now().to_msg()
+    state_msg.header.frame_id = self.machine_id
     # iterate over each response line
     for line in responses:
-        msg.data = line
-        # TODO(flynneva): filter where to publish based on msg received
-        # for now, just publish everything to status
+        self.node.get_logger().warn("[ " + str(cmd) + " ] " + str(line))
+        if(line.find('Idle') >= 0):
+            state_msg.state = self.STATE.IDLE
+            self.state = self.STATE.IDLE
+        elif(line.find('Running') >= 0):
+            state_msg.state = self.STATE.RUNNING
+            self.state = self.STATE.RUNNING 
+        elif(line.find('Alarm') >= 0):
+            state_msg.state = self.STATE.ALARM
+            self.state = self.STATE.ALARM
+        #else:
+            # not a state msg...publish status
+            #self.node.get_logger().info(line)
         # publish status
-        self.node.get_logger().info(msg.data)
-        self.node.pub_status_.publish(msg)
+        self.node.pub_state_.publish(state_msg)
 
-def stream(self, gcode_fpath):
-    f = open(gcode_fpath, 'r')
+def stream(self, fpath):
+    f = open(fpath, 'r')
 
     for raw_line in f:
         line = raw_line.strip()  # strip all EOL characters for consistency
@@ -136,3 +149,15 @@ def stream(self, gcode_fpath):
             print('    ' + status)
 
     return 'ok'
+
+def blockUntilIdle(self):
+    # polls until GRBL indicates it is done with the last command
+    pollcount = 0
+    while True:
+        status = self.getStatus()
+        if status.startswith('<Idle'):
+            break
+        # not used
+        pollcount += 1
+        # poll at 5 Hz
+        time.sleep(.2)
