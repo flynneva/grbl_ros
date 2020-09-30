@@ -21,6 +21,7 @@ import time
 
 import serial
 
+from std_msgs.msg import String
 
 def startup(self, machine_id, port, baud, acc, maxx, maxy, maxz,
             spdf, spdx, spdy, spdz, stepsx, stepsy, stepsz):
@@ -51,7 +52,6 @@ def startup(self, machine_id, port, baud, acc, maxx, maxy, maxz,
     self.machine_id = machine_id
     self.baudrate = baud
     self.port = port
-    self.timeout = 1
     self.acceleration = acc
     self.x_max = maxx
     self.y_max = maxy
@@ -67,12 +67,11 @@ def startup(self, machine_id, port, baud, acc, maxx, maxy, maxz,
 
     # initiates the serial port
     try:
-        self.s = serial.Serial(port=self.port, baudrate=self.baudrate, timeout=self.timeout)
+        self.s = serial.Serial(port=self.port, baudrate=self.baudrate)
         # set movement to Absolute coordinates
         self.ensureMovementMode(True)
         # try to get current position
-        # status = gcode(self, '?')
-
+        send(self, '?')
         # start homing procedure
         # TODO(flynneva): should this be done at startup?
         # should probably be configurable by user if they want to or not
@@ -94,17 +93,36 @@ def shutdown(self):
 def send(self, gcode):
     # TODO(evanflynn): need to add some input checking to make sure its valid GCODE
     if(len(gcode) > 0):
+        responses = []
         if(self.mode == self.MODE.NORMAL):
-            self.s.write(str.encode(gcode + '\r\n'))
-            time.sleep(0.175)
-            response = self.s.read(self.s.inWaiting()).decode('utf-8')
-            return response
+            self.s.write(str.encode(gcode + '\n'))
+            # wait until receive response with EOL character
+            r = self.s.readline().decode('utf-8').strip()
+            if(len(r) > 0):
+                responses.append(r)
+            # check to see if there are more lines in waiting
+            while (self.s.inWaiting() > 0):
+                responses.append(self.s.readline().decode('utf-8').strip())
+            
+            handle_responses(self, responses)
+            # last response should always be the state of grbl
+            return responses[-1]
         elif(self.mode == self.MODE.DEBUG):
             # in debug mode just return the GCODE that was input
             return 'Sent: ' + gcode
     else:
         return 'Input GCODE was blank'
 
+def handle_responses(self, responses):
+    msg = String()
+    # iterate over each response line
+    for line in responses:
+        msg.data = line
+        # TODO(flynneva): filter where to publish based on msg received
+        # for now, just publish everything to status
+        # publish status
+        self.node.get_logger().info(msg.data)
+        self.node.pub_status_.publish(msg)
 
 def stream(self, gcode_fpath):
     f = open(gcode_fpath, 'r')

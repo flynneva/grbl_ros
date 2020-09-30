@@ -39,7 +39,7 @@ class grbl:
     from ._control import home, moveTo, moveRel, moveToOrigin
     from ._command import startup, shutdown, send, stream
 
-    def __init__(self):
+    def __init__(self, node):
         """
         Summary line.
 
@@ -48,6 +48,7 @@ class grbl:
         """
         # Default parameter values set in startup
         self.mode = MODE.NORMAL
+        self.node = node # so we can pass info to ROS
         self.s = None    # serial port object
         self.abs_move = None     # GRBL has 2 movement modes: relative and absolute
         self.machine_id = 'cnc_000'
