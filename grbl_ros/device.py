@@ -62,16 +62,16 @@ class grbl_node(Node):
                 ('z_steps', None),  # mm
             ])
 
-        grbl_node_name = self.get_parameter('machine_id').get_parameter_value().string_value
+        self.name = self.get_parameter('machine_id').get_parameter_value().string_value
         self.get_logger().info('Initializing Publishers & Subscribers')
         # Initialize Publishers
         self.pub_tf_ = TransformBroadcaster(self)
-        self.pub_mpos_ = self.create_publisher(Pose, grbl_node_name + '/machine_position', 5)
-        self.pub_wpos_ = self.create_publisher(Pose, grbl_node_name + '/work_position', 5)
-        self.pub_state_ = self.create_publisher(State, grbl_node_name + '/state', 5)
+        self.pub_mpos_ = self.create_publisher(Pose, self.name + '/machine_position', 5)
+        self.pub_wpos_ = self.create_publisher(Pose, self.name + '/work_position', 5)
+        self.pub_state_ = self.create_publisher(State, self.name + '/state', 5)
         # Initialize Services
         self.srv_stop_ = self.create_service(
-            Stop, grbl_node_name + '/stop', self.stopCallback)
+            Stop, self.name + '/stop', self.stopCallback)
         # Initialize Actions
         self.action_send_gcode_ = ActionServer(
                 self,
@@ -79,8 +79,7 @@ class grbl_node(Node):
                 'send_gcode_cmd',
                 self.gcodeCallback)
 
-        self.get_logger().info('Setting ROS parameters')
-        self.name = self.get_parameter('machine_id').get_parameter_value().string_value
+        self.get_logger().info('Getting ROS parameters')
         port = self.get_parameter('port')
         baud = self.get_parameter('baudrate')
         acc = self.get_parameter('acceleration')    # axis acceleration (mm/s^2)
@@ -95,10 +94,14 @@ class grbl_node(Node):
         steps_y = self.get_parameter('y_steps')      # axis steps per mm
         steps_z = self.get_parameter('z_steps')      # axis steps per mm
 
+        self.get_logger().warn('  machine_id: ' + str(self.name))
+        self.get_logger().warn('  port:       ' + str(port.get_parameter_value().string_value))
+        self.get_logger().warn('  baudrate:   ' + str(baud.get_parameter_value().integer_value))
+        
         self.get_logger().info('Initializing GRBL Device')
         self.machine = grbl(self)
         self.get_logger().info('Starting up GRBL Device...')
-        self.machine.startup(grbl_node_name,
+        self.machine.startup(self.name,
                              port.get_parameter_value().string_value,
                              baud.get_parameter_value().integer_value,
                              acc.get_parameter_value().integer_value,
