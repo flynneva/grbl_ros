@@ -97,7 +97,7 @@ class grbl_node(Node):
         self.get_logger().warn('  machine_id: ' + str(self.name))
         self.get_logger().warn('  port:       ' + str(port.get_parameter_value().string_value))
         self.get_logger().warn('  baudrate:   ' + str(baud.get_parameter_value().integer_value))
-        
+
         self.get_logger().info('Initializing GRBL Device')
         self.machine = grbl(self)
         self.get_logger().info('Starting up GRBL Device...')
@@ -118,7 +118,6 @@ class grbl_node(Node):
         if(self.machine.s):
             self.machine.getStatus()
             self.machine.getSettings()
-            self.get_logger().info('GRBL device ready')
         else:
             self.get_logger().warn('Could not detect GRBL device '
                                    'on serial port ' + self.machine.port)

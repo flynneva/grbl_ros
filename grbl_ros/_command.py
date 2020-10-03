@@ -116,23 +116,41 @@ def send(self, gcode):
 
 
 def handle_responses(self, responses, cmd):
+    # iterate over each response line
+    for line in responses:
+        self.node.get_logger().info('[ ' + str(cmd) + ' ] ' + str(line))
+        # check if line is grbl status report
+        if(line[0] == '<'):
+            parse_status(self, line)
+
+
+def parse_status(self, status):
     state_msg = State()
     state_msg.header.stamp = self.node.get_clock().now().to_msg()
     state_msg.header.frame_id = self.machine_id
-    # iterate over each response line
-    for line in responses:
-        self.node.get_logger().warn('[ ' + str(cmd) + ' ] ' + str(line))
-        if(line.find('Idle') >= 0):
-            state_msg.state = self.STATE.IDLE
-            self.state = self.STATE.IDLE
-        elif(line.find('Running') >= 0):
-            state_msg.state = self.STATE.RUNNING
-            self.state = self.STATE.RUNNING
-        elif(line.find('Alarm') >= 0):
-            state_msg.state = self.STATE.ALARM
-            self.state = self.STATE.ALARM
-        # publish status
-        self.node.pub_state_.publish(state_msg)
+    # seperate fields using pipe delimeter |
+    fields = status.split('|')
+    # clean first and last field of '<>'
+    fields[0] = fields[0][1:]
+    last_field = len(fields) - 1
+    fields[last_field] = fields[last_field][:-1]
+    for f in fields:
+        self.node.get_logger().info(str(f))
+    # first field is Machine State
+    if(fields[0] == 'Idle'):
+        state_msg.state = self.STATE.IDLE
+        state_msg.state_name = self.STATE.IDLE.name
+        self.state = self.STATE.IDLE
+    elif(fields[0] == 'Running'):
+        state_msg.state = self.STATE.RUNNING
+        state_msg.state_name = self.STATE.RUNNING.name
+        self.state = self.STATE.RUNNING
+    elif(fields[0] == 'Alarm'):
+        state_msg.state = self.STATE.ALARM
+        state_msg.state_name = self.STATE.ALARM.name
+        self.state = self.STATE.ALARM
+    # publish status
+    self.node.pub_state_.publish(state_msg)
 
 
 def stream(self, fpath):
