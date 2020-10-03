@@ -28,7 +28,8 @@
 #   Future implementations might include control for other
 #   GCODE compatible systems
 
-from ._logging import STATE, MODE
+from ._logging import MODE, STATE
+
 
 class grbl:
 
@@ -48,7 +49,7 @@ class grbl:
         # Default parameter values set in startup
         self.mode = MODE.NORMAL
         self.state = STATE.ALARM  # initalize to alarm state for safety
-        self.node = node # so we can pass info to ROS
+        self.node = node  # so we can pass info to ROS
         self.s = None    # serial port object
         self.abs_move = None     # GRBL has 2 movement modes: relative and absolute
         self.machine_id = 'cnc_000'

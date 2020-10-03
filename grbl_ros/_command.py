@@ -19,10 +19,10 @@
 # THE SOFTWARE.
 import time
 
+from grbl_msgs.msg import State
+
 import serial
 
-from std_msgs.msg import String
-from grbl_msgs.msg import State
 
 def startup(self, machine_id, port, baud, acc, maxx, maxy, maxz,
             spdf, spdx, spdy, spdz, stepsx, stepsy, stepsz):
@@ -104,7 +104,7 @@ def send(self, gcode):
             # check to see if there are more lines in waiting
             while (self.s.inWaiting() > 0):
                 responses.append(self.s.readline().decode('utf-8').strip())
-            
+
             handle_responses(self, responses, gcode)
             # last response should always be the state of grbl
             return responses[-1]
@@ -114,28 +114,26 @@ def send(self, gcode):
     else:
         return 'Input GCODE was blank'
 
+
 def handle_responses(self, responses, cmd):
-    msg = String()
     state_msg = State()
     state_msg.header.stamp = self.node.get_clock().now().to_msg()
     state_msg.header.frame_id = self.machine_id
     # iterate over each response line
     for line in responses:
-        self.node.get_logger().warn("[ " + str(cmd) + " ] " + str(line))
+        self.node.get_logger().warn('[ ' + str(cmd) + ' ] ' + str(line))
         if(line.find('Idle') >= 0):
             state_msg.state = self.STATE.IDLE
             self.state = self.STATE.IDLE
         elif(line.find('Running') >= 0):
             state_msg.state = self.STATE.RUNNING
-            self.state = self.STATE.RUNNING 
+            self.state = self.STATE.RUNNING
         elif(line.find('Alarm') >= 0):
             state_msg.state = self.STATE.ALARM
             self.state = self.STATE.ALARM
-        #else:
-            # not a state msg...publish status
-            #self.node.get_logger().info(line)
         # publish status
         self.node.pub_state_.publish(state_msg)
+
 
 def stream(self, fpath):
     f = open(fpath, 'r')
@@ -149,6 +147,7 @@ def stream(self, fpath):
             print('    ' + status)
 
     return 'ok'
+
 
 def blockUntilIdle(self):
     # polls until GRBL indicates it is done with the last command

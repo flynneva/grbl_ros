@@ -17,7 +17,6 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-import time
 
 
 def setSpeed(self, speed):
@@ -33,7 +32,7 @@ def setOrigin(self, x=0, y=0, z=0):
 
 
 def clearAlarm(self):
-    return self.send(self, '\$X')
+    return self.send(self, r'\$X')
 
 
 def enableSteppers(self):
@@ -41,7 +40,7 @@ def enableSteppers(self):
 
 
 def feedHold(self):
-    return self.send(self, '\!')
+    return self.send(self, r'\!')
 
 
 def disableSteppers(self):

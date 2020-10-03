@@ -32,6 +32,7 @@ def getStatus(self):
     else:
         return 'UNDEFINED GRBL MODE'
 
+
 def getSettings(self):
     # TODO(evanflynn): status should be ROS msg?
     if(self.mode == self.MODE.NORMAL):
@@ -41,6 +42,7 @@ def getSettings(self):
         return 'DEBUG GRBL device is happy!'
     else:
         return 'UNDEFINED GRBL MODE'
+
 
 def getPose(self):
     pose = Pose()
@@ -73,11 +75,13 @@ class MODE(IntEnum):
     NORMAL = 0
     DEBUG = 1
 
+
 class STATE(IntEnum):
-   # enum class for operation states
-   IDLE = 0
-   RUNNING = 1
-   ALARM = 2
+    # enum class for operation states
+    IDLE = 0
+    RUNNING = 1
+    ALARM = 2
+
 
 class STATUS(IntEnum):
     # enum class for grbl error list

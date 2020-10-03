@@ -17,16 +17,15 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-import threading
 import time
 
 from geometry_msgs.msg import Pose
 from geometry_msgs.msg import TransformStamped
 
-from grbl_ros import grbl
+from grbl_msgs.action import SendGcodeCmd
 from grbl_msgs.msg import State
 from grbl_msgs.srv import Stop
-from grbl_msgs.action import SendGcodeCmd
+from grbl_ros import grbl
 
 import rclpy
 from rclpy.action import ActionServer
@@ -70,7 +69,7 @@ class grbl_node(Node):
         self.pub_mpos_ = self.create_publisher(Pose, grbl_node_name + '/machine_position', 5)
         self.pub_wpos_ = self.create_publisher(Pose, grbl_node_name + '/work_position', 5)
         self.pub_state_ = self.create_publisher(State, grbl_node_name + '/state', 5)
-        # Initialize Services 
+        # Initialize Services
         self.srv_stop_ = self.create_service(
             Stop, grbl_node_name + '/stop', self.stopCallback)
         # Initialize Actions
@@ -100,19 +99,19 @@ class grbl_node(Node):
         self.machine = grbl(self)
         self.get_logger().info('Starting up GRBL Device...')
         self.machine.startup(grbl_node_name,
-                              port.get_parameter_value().string_value,
-                              baud.get_parameter_value().integer_value,
-                              acc.get_parameter_value().integer_value,
-                              max_x.get_parameter_value().integer_value,
-                              max_y.get_parameter_value().integer_value,
-                              max_z.get_parameter_value().integer_value,
-                              default_speed.get_parameter_value().integer_value,
-                              speed_x.get_parameter_value().integer_value,
-                              speed_y.get_parameter_value().integer_value,
-                              speed_z.get_parameter_value().integer_value,
-                              steps_x.get_parameter_value().integer_value,
-                              steps_y.get_parameter_value().integer_value,
-                              steps_z.get_parameter_value().integer_value)
+                             port.get_parameter_value().string_value,
+                             baud.get_parameter_value().integer_value,
+                             acc.get_parameter_value().integer_value,
+                             max_x.get_parameter_value().integer_value,
+                             max_y.get_parameter_value().integer_value,
+                             max_z.get_parameter_value().integer_value,
+                             default_speed.get_parameter_value().integer_value,
+                             speed_x.get_parameter_value().integer_value,
+                             speed_y.get_parameter_value().integer_value,
+                             speed_z.get_parameter_value().integer_value,
+                             steps_x.get_parameter_value().integer_value,
+                             steps_y.get_parameter_value().integer_value,
+                             steps_z.get_parameter_value().integer_value)
         if(self.machine.s):
             self.machine.getStatus()
             self.machine.getSettings()
@@ -129,9 +128,9 @@ class grbl_node(Node):
 
     def poseCallback(self, request, response):
         self.machine.moveTo(request.position.x,
-                             request.position.y,
-                             request.position.z,
-                             blockUntilComplete=True)
+                            request.position.y,
+                            request.position.z,
+                            blockUntilComplete=True)
         return response
 
     def gcodeCallback(self, goal_handle):
@@ -178,7 +177,7 @@ class grbl_node(Node):
         # stream gcode file to grbl device
         status = self.machine.stream(request.filepath)
         # TODO(evanflynn): have stream method return something useful
-        self.get_logger().info('GCODE file complete!')
+        self.get_logger().info('GCODE file status: ' + str(status))
 
     def pub_status_thread(self):
         transforms = []
@@ -220,7 +219,7 @@ class grbl_node(Node):
                 self.pub_mpos_.publish(m_pose)
 
                 transforms.append(m_tf)
-                
+
                 if(line.find('WPos') > -1):
                     w_x = float(coord[3].split(':')[1]) / 1000.0
                     w_y = float(coord[4]) / 1000.0
@@ -245,7 +244,6 @@ def main(args=None):
     rclpy.init(args=args)
     node = grbl_node()
     rclpy.spin(node)
-    rate = node.create_rate(5)
     rclpy.shutdown()
 
 
