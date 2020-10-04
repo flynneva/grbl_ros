@@ -140,7 +140,9 @@ class grbl_node(Node):
         status = self.machine.send(str(goal_handle.request.command))
         if(status.find('error') > -1):
             # grbl device returned error code
-            self.get_logger().warn(status)
+            # decode error
+            self.decode_error(status)
+            
             result.success = False
         elif(status.find('ok') > -1):
             # grbl device running command
@@ -149,10 +151,13 @@ class grbl_node(Node):
             if(self.machine.state.name.upper() == self.machine.STATE.RUN.name):
                 # machine still running command
                 # wait until machine is idle
+                status_msg = SendGcodeCmd.Feedback()
                 while self.machine.state.name.upper() == self.machine.STATE.RUN.name:
                     # poll status, publish position
                     time.sleep(0.2)
                     self.machine.send(str('?'))
+                    status_msg.status = 'Running ' + str(goal_handle.request.command)
+                    goal_handle.publish_feedback(status_msg)
             #elif(self.machine.state.name.upper() == self.machine.STATE.ALARM.name):
                 # machine alarm is still active
                 #self.get_logger().warn('ALARM')
