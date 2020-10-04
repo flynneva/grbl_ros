@@ -28,17 +28,15 @@
 #   Future implementations might include control for other
 #   GCODE compatible systems
 
-from ._logging import MODE, STATE
+from ._logging import logging
+from ._configure import configure
+from ._command import command
+from ._control import control
 
 
-class grbl:
+class grbl(control, command, configure, logging):
 
-    from ._logging import getStatus, getSettings, getPose, decodeStatus, STATE, STATUS, MODE
-    from ._configure import setSpeed, setOrigin, ensureMovementMode, \
-        clearAlarm, enableSteppers, disableSteppers
-    from ._control import home, moveTo, moveRel, moveToOrigin
-    from ._command import startup, shutdown, send, stream
-
+    
     def __init__(self, node):
         """
         Summary line.
@@ -47,8 +45,8 @@ class grbl:
 
         """
         # Default parameter values set in startup
-        self.mode = MODE.NORMAL
-        self.state = STATE.ALARM  # initalize to alarm state for safety
+        self.mode = self.MODE.NORMAL
+        self.state = self.STATE.ALARM  # initalize to alarm state for safety
         self.node = node  # so we can pass info to ROS
         self.s = None    # serial port object
         self.abs_move = None     # GRBL has 2 movement modes: relative and absolute
