@@ -146,17 +146,16 @@ class grbl_node(Node):
             # grbl device running command
             # check state
             self.machine.send(str('?'))
-            if(self.machine.state == self.machine.STATE.RUNNING):
+            if(self.machine.state.name.upper() == self.machine.STATE.RUN.name):
                 # machine still running command
                 # wait until machine is idle
-                while self.machine.state == self.machine.STATE.RUNNING:
+                while self.machine.state.name.upper() == self.machine.STATE.RUN.name:
                     # poll status, publish position
-                    self.get_logger().warn('machine is running')
-                    time.sleep(1)
+                    time.sleep(0.2)
                     self.machine.send(str('?'))
-            elif(self.machine.state == self.machine.STATE.ALARM):
+            #elif(self.machine.state.name.upper() == self.machine.STATE.ALARM.name):
                 # machine alarm is still active
-                self.get_logger().warn('ALARM')
+                #self.get_logger().warn('ALARM')
             goal_handle.succeed()
             result.success = True
         else:

@@ -82,7 +82,7 @@ class logging(object):
     class STATE(IntEnum):
         # enum class for operation states
         IDLE = 0
-        RUNNING = 1
+        RUN = 1
         HOLD = 2
         JOG = 3
         ALARM = 4
