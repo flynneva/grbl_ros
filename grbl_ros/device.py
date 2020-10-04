@@ -18,25 +18,29 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 import time
+from threading import Event
 
 from geometry_msgs.msg import Pose
 from geometry_msgs.msg import TransformStamped
 
-from grbl_msgs.action import SendGcodeCmd
+from grbl_msgs.action import SendGcodeCmd, SendGcodeFile
 from grbl_msgs.msg import State
 from grbl_msgs.srv import Stop
 from grbl_ros import grbl
 
 import rclpy
-from rclpy.action import ActionServer
+from rclpy.action import ActionServer, ActionClient
 
 from rclpy.node import Node
+from rclpy.callback_groups import ReentrantCallbackGroup
+from rclpy.executors import MultiThreadedExecutor
 
 from std_msgs.msg import String
 from tf2_ros.transform_broadcaster import TransformBroadcaster
 
 
 class grbl_node(Node):
+
 
     def __init__(self):
         # TODO(evanflynn): init node with machine_id param input or arg
@@ -62,22 +66,35 @@ class grbl_node(Node):
                 ('z_steps', None),  # mm
             ])
 
-        self.name = self.get_parameter('machine_id').get_parameter_value().string_value
+        self.machine_id = self.get_parameter('machine_id').get_parameter_value().string_value
         self.get_logger().info('Initializing Publishers & Subscribers')
         # Initialize Publishers
         self.pub_tf_ = TransformBroadcaster(self)
-        self.pub_mpos_ = self.create_publisher(Pose, self.name + '/machine_position', 5)
-        self.pub_wpos_ = self.create_publisher(Pose, self.name + '/work_position', 5)
-        self.pub_state_ = self.create_publisher(State, self.name + '/state', 5)
+        self.pub_mpos_ = self.create_publisher(Pose, self.machine_id + '/machine_position', 5)
+        self.pub_wpos_ = self.create_publisher(Pose, self.machine_id + '/work_position', 5)
+        self.pub_state_ = self.create_publisher(State, self.machine_id + '/state', 5)
         # Initialize Services
         self.srv_stop_ = self.create_service(
-            Stop, self.name + '/stop', self.stopCallback)
+            Stop, self.machine_id + '/stop', self.stopCallback)
         # Initialize Actions
+        self.action_done_event = Event()
+        self.callback_group = ReentrantCallbackGroup()
         self.action_send_gcode_ = ActionServer(
                 self,
                 SendGcodeCmd,
-                'send_gcode_cmd',
+                self.machine_id + '/send_gcode_cmd',
                 self.gcodeCallback)
+        self.action_send_gcode_file_ = ActionServer(
+                self,
+                SendGcodeFile,
+                self.machine_id + '/send_gcode_file',
+                self.streamCallback)
+        self.action_client_send_gcode_ = ActionClient(
+                self,
+                SendGcodeCmd,
+                self.machine_id + '/send_gcode_cmd', callback_group=self.callback_group)
+        
+        self.action_done_event = Event()
 
         self.get_logger().info('Getting ROS parameters')
         port = self.get_parameter('port')
@@ -94,14 +111,14 @@ class grbl_node(Node):
         steps_y = self.get_parameter('y_steps')      # axis steps per mm
         steps_z = self.get_parameter('z_steps')      # axis steps per mm
 
-        self.get_logger().warn('  machine_id: ' + str(self.name))
+        self.get_logger().warn('  machine_id: ' + str(self.machine_id))
         self.get_logger().warn('  port:       ' + str(port.get_parameter_value().string_value))
         self.get_logger().warn('  baudrate:   ' + str(baud.get_parameter_value().integer_value))
 
         self.get_logger().info('Initializing GRBL Device')
         self.machine = grbl(self)
         self.get_logger().info('Starting up GRBL Device...')
-        self.machine.startup(self.name,
+        self.machine.startup(self.machine_id,
                              port.get_parameter_value().string_value,
                              baud.get_parameter_value().integer_value,
                              acc.get_parameter_value().integer_value,
@@ -128,12 +145,14 @@ class grbl_node(Node):
             self.get_logger().info('GRBL device operation may not function as expected')
             self.machine.mode = self.grbl_obj.MODE.DEBUG
 
+
     def poseCallback(self, request, response):
         self.machine.moveTo(request.position.x,
                             request.position.y,
                             request.position.z,
                             blockUntilComplete=True)
         return response
+
 
     def gcodeCallback(self, goal_handle):
         result = SendGcodeCmd.Result()
@@ -142,7 +161,7 @@ class grbl_node(Node):
             # grbl device returned error code
             # decode error
             self.decode_error(status)
-            
+
             result.success = False
         elif(status.find('ok') > -1):
             # grbl device running command
@@ -169,6 +188,58 @@ class grbl_node(Node):
             result.success = False
         return result
 
+    
+    def streamCallback(self, goal_handle):
+        result = SendGcodeFile.Result()
+        # open file to read each line
+        f = open(goal_handle.request.file_path, 'r')
+
+        self.action_client_send_gcode_.wait_for_server()
+        gcode_msg = SendGcodeCmd.Goal()
+
+        file_length = len(open(goal_handle.request.file_path, 'r').read().split('\n'))
+        line_num = 0
+
+        for raw_line in f:
+            self.action_done_event.clear()
+            line = raw_line.strip()  # strip all EOL characters for consistency
+            gcode_msg.command = line
+            status_msg = SendGcodeFile.Feedback()
+            # send gcode line to action server
+            send_goal_future = self.action_client_send_gcode_.send_goal_async(
+                    gcode_msg, feedback_callback=self.file_feedback)
+            send_goal_future.add_done_callback(self.line_response_callback)
+            # wait for send gcode action to be done
+            self.action_done_event.wait()
+
+            status_msg = SendGcodeFile.Feedback()
+
+            # dont send another line until its done running
+            status_msg.status = '[ ' + str(line_num) + ' / ' + str(file_length) + \
+                ' ] Running ' + str(line)
+            goal_handle.publish_feedback(status_msg)
+            line_num += 1
+
+
+        goal_handle.succeed()
+        result.success = True
+        return result
+
+    
+    def file_feedback(self, feedback):
+        #self.get_logger().info('received feedback')
+        return
+
+
+    def line_response_callback(self, future):
+        goal_handle = future.result()
+        get_result_future = goal_handle.get_result_async()
+        get_result_future.add_done_callback(self.get_result_callback)
+
+
+    def get_result_callback(self, future):
+        self.action_done_event.set()
+
     def stopCallback(self, request, response):
         # stop steppers
         if request.data == 's':
@@ -176,80 +247,13 @@ class grbl_node(Node):
             # fire steppers
         elif request.data == 'f':
             self.machine.enableSteppers()
-
-    def streamCallback(self, request, response):
-        self.get_logger().info('Sending GCODE file: ')
-        self.get_logger().info('  ' + request.filepath)
-        # stream gcode file to grbl device
-        status = self.machine.stream(request.filepath)
-        # TODO(evanflynn): have stream method return something useful
-        self.get_logger().info('GCODE file status: ' + str(status))
-
-    def pub_status_thread(self):
-        transforms = []
-        msg = String()
-        # getStatus has to wait for response over serial
-        status = self.machine.getStatus()
-        for line in status.split():
-            msg.data = line.rstrip('\r\n')
-            self.pub_status_.publish(msg)
-            print(line)
-            if(line.find('<') > -1 and line.find('MPos') > -1):
-                # self.get_logger().info(line)
-                m_tf = TransformStamped()
-                m_tf.header.frame_id = 'base_link'
-                m_tf.header.stamp = self.get_clock().now().to_msg()
-                m_tf.child_frame_id = self.name + '_machine'
-
-                w_tf = TransformStamped()
-                w_tf.header.frame_id = 'base_link'
-                w_tf.header.stamp = self.get_clock().now().to_msg()
-                w_tf.child_frame_id = self.name + '_workpiece'
-
-                coord = line[(line.find('MPos')+5):].split(',')
-
-                m_x = float(coord[0]) / 1000.0
-                m_y = float(coord[1]) / 1000.0
-                m_z = float(coord[2].split('|')[0]) / 1000.0
-
-                m_pose = Pose()
-
-                m_pose.position.x = m_x
-                m_pose.position.y = m_y
-                m_pose.position.z = m_z
-
-                m_tf.transform.translation.x = m_x
-                m_tf.transform.translation.y = m_y
-                m_tf.transform.translation.z = m_z
-
-                self.pub_mpos_.publish(m_pose)
-
-                transforms.append(m_tf)
-
-                if(line.find('WPos') > -1):
-                    w_x = float(coord[3].split(':')[1]) / 1000.0
-                    w_y = float(coord[4]) / 1000.0
-                    w_z = float(coord[5][:-1]) / 1000.0
-
-                    w_pose = Pose()
-                    w_pose.position.x = w_x
-                    w_pose.position.y = w_y
-                    w_pose.position.z = w_z
-
-                    w_tf.transform.translation.x = w_x
-                    w_tf.transform.translation.y = w_y
-                    w_tf.transform.translation.z = w_z
-
-                    self.pub_wpos_.publish(w_pose)
-                    transforms.append(w_tf)
-
-                self.pub_tf_.sendTransform(transforms)
-
+    
 
 def main(args=None):
     rclpy.init(args=args)
     node = grbl_node()
-    rclpy.spin(node)
+    executor = MultiThreadedExecutor()
+    rclpy.spin(node, executor)
     rclpy.shutdown()
 
 

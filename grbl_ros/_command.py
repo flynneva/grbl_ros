@@ -123,7 +123,8 @@ class command(object):
     def handle_responses(self, responses, cmd):
         # iterate over each response line
         for line in responses:
-            self.node.get_logger().info('[ ' + str(cmd) + ' ] ' + str(line))
+            if(line.find('ok') == -1):
+              self.node.get_logger().info('[ ' + str(cmd) + ' ] ' + str(line))
             # check if line is grbl status report
             if(line[0] == '<'):
                 self.parse_status(line)
