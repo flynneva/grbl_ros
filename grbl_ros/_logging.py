@@ -80,7 +80,13 @@ class STATE(IntEnum):
     # enum class for operation states
     IDLE = 0
     RUNNING = 1
-    ALARM = 2
+    HOLD = 2
+    JOG = 3
+    ALARM = 4
+    DOOR = 5
+    CHECK = 6
+    HOME = 7
+    SLEEP = 8
 
 
 class STATUS(IntEnum):

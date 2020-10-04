@@ -104,7 +104,6 @@ def send(self, gcode):
             # check to see if there are more lines in waiting
             while (self.s.inWaiting() > 0):
                 responses.append(self.s.readline().decode('utf-8').strip())
-
             handle_responses(self, responses, gcode)
             # last response should always be the state of grbl
             return responses[-1]
@@ -125,32 +124,74 @@ def handle_responses(self, responses, cmd):
 
 
 def parse_status(self, status):
-    state_msg = State()
-    state_msg.header.stamp = self.node.get_clock().now().to_msg()
-    state_msg.header.frame_id = self.machine_id
     # seperate fields using pipe delimeter |
     fields = status.split('|')
     # clean first and last field of '<>'
     fields[0] = fields[0][1:]
     last_field = len(fields) - 1
     fields[last_field] = fields[last_field][:-1]
+    
     for f in fields:
         self.node.get_logger().info(str(f))
-    # first field is Machine State
-    if(fields[0] == 'Idle'):
+
+    # followed grbl message construction docs
+    # https://github.com/gnea/grbl/wiki/Grbl-v1.1-Interface#grbl-response-messages
+    # The first (Machine State) and second (Current Position) data fields are always included in every report.
+    # handle machine state
+    state_msg = handle_state(self, fields[0])
+    # parse current position
+    machine_position = handle_current_pose(self, fields[1])
+    # publish status
+    self.node.pub_state_.publish(state_msg)
+
+
+def handle_current_pose(self, pose):
+    self.node.get_logger().info(str(pose))
+    return pose
+
+
+
+def handle_state(self, state):
+    state_msg = State()
+    state_msg.header.stamp = self.node.get_clock().now().to_msg()
+    state_msg.header.frame_id = self.machine_id
+    if(state == 'Idle'):
         state_msg.state = self.STATE.IDLE
         state_msg.state_name = self.STATE.IDLE.name
         self.state = self.STATE.IDLE
-    elif(fields[0] == 'Running'):
+    elif(state == 'Running'):
         state_msg.state = self.STATE.RUNNING
         state_msg.state_name = self.STATE.RUNNING.name
         self.state = self.STATE.RUNNING
-    elif(fields[0] == 'Alarm'):
+    elif(state == 'Alarm'):
         state_msg.state = self.STATE.ALARM
         state_msg.state_name = self.STATE.ALARM.name
         self.state = self.STATE.ALARM
-    # publish status
-    self.node.pub_state_.publish(state_msg)
+    elif(state == 'Jog'):
+        state_msg.state = self.STATE.JOG
+        state_msg.state_name = self.STATE.JOG.name
+        self.state = self.STATE.JOG
+    elif(state == 'Hold'):
+        state_msg.state = self.STATE.HOLD
+        state_msg.state_name = self.STATE.HOLD.name
+        self.state = self.STATE.HOLD
+    elif(state == 'Door'):
+        state_msg.state = self.STATE.DOOR
+        state_msg.state_name = self.STATE.DOOR.name
+        self.state = self.STATE.DOOR
+    elif(state == 'Check'):
+        state_msg.state = self.STATE.CHECK
+        state_msg.state_name = self.STATE.CHECK.name
+        self.state = self.STATE.CHECK
+    elif(state == 'Home'):
+        state_msg.state = self.STATE.HOME
+        state_msg.state_name = self.STATE.HOME.name
+        self.state = self.STATE.HOME
+    elif(state == 'Sleep'):
+        state_msg.state = self.STATE.SLEEP
+        state_msg.state_name = self.STATE.SLEEP.name
+        self.state = self.STATE.SLEEP
+    return state_msg
 
 
 def stream(self, fpath):
