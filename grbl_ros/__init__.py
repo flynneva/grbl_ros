@@ -36,14 +36,7 @@ from ._control import control
 
 class grbl(control, command, configure, logging):
 
-    
     def __init__(self, node):
-        """
-        Summary line.
-
-        Initialize the grbl class with default parameters
-
-        """
         # Default parameter values set in startup
         self.mode = self.MODE.NORMAL
         self.state = self.STATE.ALARM  # initalize to alarm state for safety

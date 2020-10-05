@@ -24,7 +24,6 @@ from geometry_msgs.msg import Pose
 
 class logging(object):
 
-   
     def getStatus(self):
         # TODO(evanflynn): status should be ROS msg?
         if(self.mode == self.MODE.NORMAL):
@@ -34,8 +33,7 @@ class logging(object):
             return 'DEBUG GRBL device is happy!'
         else:
             return 'UNDEFINED GRBL MODE'
-    
-    
+
     def getSettings(self):
         # TODO(evanflynn): status should be ROS msg?
         if(self.mode == self.MODE.NORMAL):
@@ -45,8 +43,7 @@ class logging(object):
             return 'DEBUG GRBL device is happy!'
         else:
             return 'UNDEFINED GRBL MODE'
-    
-    
+
     def getPose(self):
         pose = Pose()
         pose.position.x = float(self.pos[0])
@@ -60,25 +57,22 @@ class logging(object):
         pose.orientation.z = float(self.angular[2])
         pose.orientation.w = float(self.angular[3])
         return pose
-    
-    
+
     def decodeStatus(self, status):
         if('error' in status):
             err = status.split(':', 1)[1]
             if(type(err) == int()):
-                return STATUS(int(status.split(':', 1)[1])).name
+                return self.STATUS(int(status.split(':', 1)[1])).name
             else:
                 return err
         else:
             return status
-    
-    
+
     class MODE(IntEnum):
         # enum class for operation modes helpful for debugging
         NORMAL = 0
         DEBUG = 1
-    
-    
+
     class STATE(IntEnum):
         # enum class for operation states
         IDLE = 0
@@ -90,8 +84,7 @@ class logging(object):
         CHECK = 6
         HOME = 7
         SLEEP = 8
-    
-    
+
     class STATUS(IntEnum):
         # enum class for grbl error list
         # http://domoticx.com/cnc-machine-grbl-error-list/

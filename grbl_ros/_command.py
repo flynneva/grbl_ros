@@ -17,8 +17,6 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-import time
-
 from grbl_msgs.msg import State
 
 from geometry_msgs.msg import Pose
@@ -29,14 +27,13 @@ import serial
 
 class command(object):
 
-
     def startup(self, machine_id, port, baud, acc, maxx, maxy, maxz,
                 spdf, spdx, spdy, spdz, stepsx, stepsy, stepsz):
         """
         Summary line.
-    
+
         Startup the GRBL machine with the specified parameters
-    
+
         Args:
         ----
           self (obj): the grbl object
@@ -53,7 +50,7 @@ class command(object):
           stepsx (int): number of steps per mm for x axis (steps)
           stepsy (int): number of steps per mm for y axis (steps)
           stepsz (int): number of steps per mm for z axis (steps)
-    
+
         """
         # initiate all CNC parameters read from .launch file
         self.machine_id = machine_id
@@ -71,7 +68,6 @@ class command(object):
         self.y_steps_mm = stepsy
         self.z_steps_mm = stepsz
         self.limits = [self.x_max, self.y_max, self.z_max]
-    
         # initiates the serial port
         try:
             self.s = serial.Serial(port=self.port, baudrate=self.baudrate)
@@ -90,13 +86,11 @@ class command(object):
             # Could not detect GRBL device on serial port ' + self.port
             # Are you sure the GRBL device is connected and powered on?
             return
-    
-    
+
     def shutdown(self):
         # close the serial connection
         self.s.close()
-    
-    
+
     def send(self, gcode):
         # TODO(evanflynn): need to add some input checking to make sure its valid GCODE
         if(len(gcode) > 0):
@@ -118,18 +112,16 @@ class command(object):
                 return 'Sent: ' + gcode
         else:
             return 'Input GCODE was blank'
-    
-    
+
     def handle_responses(self, responses, cmd):
         # iterate over each response line
         for line in responses:
             if(line.find('ok') == -1):
-              self.node.get_logger().info('[ ' + str(cmd) + ' ] ' + str(line))
+                self.node.get_logger().info('[ ' + str(cmd) + ' ] ' + str(line))
             # check if line is grbl status report
             if(line[0] == '<'):
                 self.parse_status(line)
-    
-    
+
     def parse_status(self, status):
         # seperate fields using pipe delimeter |
         fields = status.split('|')
@@ -137,53 +129,46 @@ class command(object):
         fields[0] = fields[0][1:]
         last_field = len(fields) - 1
         fields[last_field] = fields[last_field][:-1]
-        
-        #for f in fields:
+        # for f in fields:
         #    self.node.get_logger().info(str(f))
-    
         # followed grbl message construction docs
         # https://github.com/gnea/grbl/wiki/Grbl-v1.1-Interface#grbl-response-messages
-        # The first (Machine State) and second (Current Position) data fields are always included in every report.
+        # The first (Machine State) and second (Current Position) data fields
+        # are always included in every report.
         # handle machine state
         state_msg = self.handle_state(fields[0])
         # parse current position
         self.handle_current_pose(fields[1])
         # publish status
         self.node.pub_state_.publish(state_msg)
-    
-    
+
     def handle_current_pose(self, pose):
         transforms = []
         machine_tf = TransformStamped()
         machine_tf.header.frame_id = 'base_link'
         machine_tf.header.stamp = self.node.get_clock().now().to_msg()
         machine_tf.child_frame_id = self.machine_id + '_machine'
-
         machine_pose = Pose()
 
         # parse coordinates from current position
         coords = pose.split(':')[1].split(',')
-
         x = float(coords[0]) / 1000.0
         y = float(coords[1]) / 1000.0
         z = float(coords[2]) / 1000.0
-        
+
         machine_tf.transform.translation.x = x
         machine_tf.transform.translation.y = y
         machine_tf.transform.translation.z = z
-    
+
         machine_pose.position.x = x
         machine_pose.position.y = y
         machine_pose.position.z = z
-      
-        transforms.append(machine_tf)
 
+        transforms.append(machine_tf)
         self.node.pub_mpos_.publish(machine_pose)
         self.node.pub_tf_.sendTransform(transforms)
-
         return
-    
-    
+
     def handle_state(self, state):
         state_msg = State()
         state_msg.header.stamp = self.node.get_clock().now().to_msg()
@@ -226,15 +211,12 @@ class command(object):
             state_msg.state_name = self.STATE.SLEEP.name
             self.state = self.STATE.SLEEP
         return state_msg
-    
-    
+
     def stream(self, fpath):
         f = open(fpath, 'r')
-    
         for raw_line in f:
             line = raw_line.strip()  # strip all EOL characters for consistency
             status = self.send(line)
             if(self.mode == self.MODE.DEBUG):
                 print('    ' + status)
-    
         return 'ok'

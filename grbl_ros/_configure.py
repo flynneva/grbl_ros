@@ -21,35 +21,28 @@
 
 class configure(object):
 
-
     def setSpeed(self, speed):
         self.defaultSpeed = speed
-    
-    
+
     def setOrigin(self, x=0, y=0, z=0):
         # set current position to be (0,0,0), or a custom (x,y,z)
         gcode = 'G92 x{} y{} z{}\n'.format(x, y, z)
         self.send(self, gcode)
         # update our internal location
         self.pos = [x, y, z]
-    
-    
+
     def clearAlarm(self):
         return self.send(self, r'\$X')
-    
-    
+
     def enableSteppers(self):
         return self.send(self, 'M17')
-    
-    
+
     def feedHold(self):
         return self.send(self, r'\!')
-    
-    
+
     def disableSteppers(self):
         return self.send(self, 'M18')
-    
-    
+
     def ensureMovementMode(self, absoluteMode=True):
         # GRBL has two movement modes
         # if necessary this function tells GRBL to switch modes

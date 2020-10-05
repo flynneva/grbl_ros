@@ -21,7 +21,6 @@ import time
 from threading import Event
 
 from geometry_msgs.msg import Pose
-from geometry_msgs.msg import TransformStamped
 
 from grbl_msgs.action import SendGcodeCmd, SendGcodeFile
 from grbl_msgs.msg import State
@@ -35,12 +34,10 @@ from rclpy.node import Node
 from rclpy.callback_groups import ReentrantCallbackGroup
 from rclpy.executors import MultiThreadedExecutor
 
-from std_msgs.msg import String
 from tf2_ros.transform_broadcaster import TransformBroadcaster
 
 
 class grbl_node(Node):
-
 
     def __init__(self):
         # TODO(evanflynn): init node with machine_id param input or arg
@@ -93,7 +90,7 @@ class grbl_node(Node):
                 self,
                 SendGcodeCmd,
                 self.machine_id + '/send_gcode_cmd', callback_group=self.callback_group)
-        
+
         self.action_done_event = Event()
 
         self.get_logger().info('Getting ROS parameters')
@@ -145,14 +142,12 @@ class grbl_node(Node):
             self.get_logger().info('GRBL device operation may not function as expected')
             self.machine.mode = self.grbl_obj.MODE.DEBUG
 
-
     def poseCallback(self, request, response):
         self.machine.moveTo(request.position.x,
                             request.position.y,
                             request.position.z,
                             blockUntilComplete=True)
         return response
-
 
     def gcodeCallback(self, goal_handle):
         result = SendGcodeCmd.Result()
@@ -161,7 +156,6 @@ class grbl_node(Node):
             # grbl device returned error code
             # decode error
             self.decode_error(status)
-
             result.success = False
         elif(status.find('ok') > -1):
             # grbl device running command
@@ -177,9 +171,9 @@ class grbl_node(Node):
                     self.machine.send(str('?'))
                     status_msg.status = 'Running ' + str(goal_handle.request.command)
                     goal_handle.publish_feedback(status_msg)
-            #elif(self.machine.state.name.upper() == self.machine.STATE.ALARM.name):
+            # elif(self.machine.state.name.upper() == self.machine.STATE.ALARM.name):
                 # machine alarm is still active
-                #self.get_logger().warn('ALARM')
+                # self.get_logger().warn('ALARM')
             goal_handle.succeed()
             result.success = True
         else:
@@ -188,7 +182,6 @@ class grbl_node(Node):
             result.success = False
         return result
 
-    
     def streamCallback(self, goal_handle):
         result = SendGcodeFile.Result()
         # open file to read each line
@@ -220,22 +213,18 @@ class grbl_node(Node):
             goal_handle.publish_feedback(status_msg)
             line_num += 1
 
-
         goal_handle.succeed()
         result.success = True
         return result
 
-    
     def file_feedback(self, feedback):
-        #self.get_logger().info('received feedback')
+        # self.get_logger().info('received feedback')
         return
-
 
     def line_response_callback(self, future):
         goal_handle = future.result()
         get_result_future = goal_handle.get_result_async()
         get_result_future.add_done_callback(self.get_result_callback)
-
 
     def get_result_callback(self, future):
         self.action_done_event.set()
@@ -247,7 +236,7 @@ class grbl_node(Node):
             # fire steppers
         elif request.data == 'f':
             self.machine.enableSteppers()
-    
+
 
 def main(args=None):
     rclpy.init(args=args)
