@@ -173,7 +173,7 @@ class grbl_node(Node):
                 status_msg = SendGcodeCmd.Feedback()
                 while self.machine.state.name.upper() == self.machine.STATE.RUN.name:
                     # poll status, publish position
-                    time.sleep(0.2)
+                    time.sleep(0.01)
                     self.machine.send(str('?'))
                     status_msg.status = 'Running ' + str(goal_handle.request.command)
                     goal_handle.publish_feedback(status_msg)
