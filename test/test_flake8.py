@@ -11,8 +11,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import os
 
-from ament_flake8.main import main_with_errors
+# backwards compatability for older ROS2 distros
+if os.environ['ROS_DISTRO'] == 'dashing' or \
+   os.environ['ROS_DISTRO'] == 'eloquent':
+  from ament_flake8.main import main
+else:
+  from ament_flake8.main import main_with_errors
+
 import pytest
 
 
