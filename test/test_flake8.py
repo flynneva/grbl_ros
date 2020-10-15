@@ -13,21 +13,21 @@
 # limitations under the License.
 import os
 
+import pytest
+
 # backwards compatability for older ROS2 distros
 if os.environ['ROS_DISTRO'] == 'dashing' or \
    os.environ['ROS_DISTRO'] == 'eloquent':
-  from ament_flake8.main import main
+    from ament_flake8.main import main
 else:
-  from ament_flake8.main import main_with_errors
-
-import pytest
+    from ament_flake8.main import main_with_errors
 
 
 @pytest.mark.flake8
 @pytest.mark.linter
 def test_flake8():
-   if os.environ['ROS_DISTRO'] == 'dashing' or \
-      os.environ['ROS_DISTRO'] == 'eloquent':
+    if os.environ['ROS_DISTRO'] == 'dashing' or \
+       os.environ['ROS_DISTRO'] == 'eloquent':
         rc = main(argv=[])
         assert rc == 0, 'Found errros'
     else:

@@ -28,10 +28,10 @@
 #   Future implementations might include control for other
 #   GCODE compatible systems
 
-from ._logging import logging
-from ._configure import configure
 from ._command import command
+from ._configure import configure
 from ._control import control
+from ._logging import logging
 
 
 class grbl(control, command, configure, logging):
