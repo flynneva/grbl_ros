@@ -44,8 +44,9 @@ jobs:
         with:
           path: ros_ws/src
       - name: setup ROS environment
-        uses: ros-tooling/setup-ros@master
+        uses: flynneva/setup-ros@enable_ros2_testing
         with:
+          use-ros2-testing: true
           required-ros-distributions: ${{ matrix.ros_distribution }}
       - name: build and test
         uses: ros-tooling/action-ros-ci@0.0.19
