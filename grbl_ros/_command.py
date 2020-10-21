@@ -37,6 +37,7 @@ class command(object):
         Args:
         ----
           self (obj): the grbl object
+          machine_id (str): the name of the machine
           port (str): the serial port that connects to the grbl device
           baud (int): the baud rate to use for serial communication with the grbl device
           acc (int): the grbl device axis acceleration (mm/s^2)
