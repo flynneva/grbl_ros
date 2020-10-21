@@ -2,7 +2,7 @@
 Changelog for package grbl_ros
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
+0.0.14
 -----------
 * separated methods to semantic file name
 * Delete dashing-release.yml
@@ -61,6 +61,7 @@ Forthcoming
 * forgot to add ubuntu
 * update readme
 * Contributors: Evan Flynn
+
 
 0.0.2 (2020-08-05)
 ------------------
