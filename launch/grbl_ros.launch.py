@@ -17,21 +17,27 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
+import os
 
-
-import launch
-import launch.actions
-import launch.substitutions
-import launch_ros.actions
+from ament_index_python.packages import get_package_share_directory
+from launch import LaunchDescription
+from launch_ros.actions import Node
 
 
 def generate_launch_description():
-    return launch.LaunchDescription([
-        launch.actions.DeclareLaunchArgument(
-            'node_prefix',
-            default_value=[launch.substitutions.EnvironmentVariable('USER'), '_'],
-            description='Prefix for node names'),
-        launch_ros.actions.Node(
-            package='grbl_ros', executable='interface', output='screen',
-            name=[launch.substitutions.LaunchConfiguration('node_prefix'), 'grbl_ros']),
-    ])
+    ld = LaunchDescription()
+
+    # TODO(evanflynn): add a for loop here to loop over each YAML file
+    config = os.path.join(
+        get_package_share_directory('grbl_ros'),
+        'config',
+        'cnc001.yaml')
+
+    node = Node(
+        package='grbl_ros',
+        name='cnc_001',
+        executable='grbl_node',
+        parameters=[config])
+
+    ld.add_action(node)
+    return ld

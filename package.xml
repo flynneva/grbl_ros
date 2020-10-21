@@ -7,6 +7,10 @@
   <maintainer email="evanflynn.msu@gmail.com">Evan Flynn</maintainer>
   <license>MIT</license>
 
+  <depend>rclpy</depend>
+  <depend>grbl_msgs</depend>
+  <depend>std_msgs</depend>
+
   <build_depend>python3-serial</build_depend>
 
   <test_depend>ament_copyright</test_depend>

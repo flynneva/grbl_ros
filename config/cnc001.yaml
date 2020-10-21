@@ -1,0 +1,16 @@
+cnc_001:
+  ros__parameters:
+    machine_id: cnc_001
+    port: /dev/ttyUSB0
+    baudrate: 115200
+    x_max: 300  # mm
+    y_max: 200  # mm
+    z_max: 150  # mm
+    default_v: 100  # mm / min
+    x_max_v: 150  # mm / min
+    y_max_v: 150  # mm / min
+    z_max_v: 150  # mm / min
+    x_steps: 100  # steps / mm
+    y_steps: 100  # steps / mm
+    z_steps: 100  # steps / mm
+

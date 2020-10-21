@@ -38,7 +38,6 @@ Unit tests are run on every PR and every release across every supported platform
 Here is a list of potential ideas/features this package could have. Eventually the plan is to add all of these.
 - full grbl command support & descriptions (non-modal commands, motion modes, etc.)
 - safety features that grbl already implements to be translated to ROS (door sensor, estop, endstop, etc.)
-- full file gcode streaming to grbl device
-- publish tf of grbl machine coordinates
+- ROS param control of GRBL settings
 - ROS services for jog control
 - im sure there are more but I cant think of them right now

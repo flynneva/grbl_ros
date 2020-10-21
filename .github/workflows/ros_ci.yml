@@ -1,4 +1,4 @@
-name: Rolling CI
+name: ROS2 CI
 
 on:
   pull_request:
@@ -13,8 +13,23 @@ jobs:
       fail-fast: false
       matrix:
         ros_distribution:
+          - dashing
+          - eloquent
+          - foxy
           - rolling
         include:
+          # Dashing Diademata (May 2019 - May 2021)
+          - docker_image: ubuntu:bionic
+            ros_distribution: dashing
+            ros_version: 2
+          # Eloquent Elusor (November 2019 - November 2020)
+          - docker_image: ubuntu:bionic
+            ros_distribution: eloquent
+            ros_version: 2
+          # Foxy Fitzroy (June 2020 - May 2023)
+          - docker_image: ubuntu:focal
+            ros_distribution: foxy
+            ros_version: 2
           # Rolling Ridley  (June 2020 - Present)
           - docker_image: ubuntu:focal
             ros_distribution: rolling
@@ -29,8 +44,9 @@ jobs:
         with:
           path: ros_ws/src
       - name: setup ROS environment
-        uses: ros-tooling/setup-ros@master
+        uses: flynneva/setup-ros@enable_ros2_testing
         with:
+          use-ros2-testing: true
           required-ros-distributions: ${{ matrix.ros_distribution }}
       - name: build and test
         uses: ros-tooling/action-ros-ci@0.0.19
