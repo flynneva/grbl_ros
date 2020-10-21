@@ -46,7 +46,7 @@ jobs:
       - name: setup ROS environment
         uses: flynneva/setup-ros@enable_ros2_testing
         with:
-          use-ros2-testing: true
+          use-ros2-testing: false
           required-ros-distributions: ${{ matrix.ros_distribution }}
       - name: build and test
         uses: ros-tooling/action-ros-ci@0.0.19
