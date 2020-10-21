@@ -10,6 +10,8 @@ jobs:
     steps:
     - name: checkout
       uses: actions/checkout@v2
+    - name: make docs directory
+      run: mkdir docs
     - name: build documentation
       uses: ammaraskar/sphinx-action@0.4
     - name: deploy
