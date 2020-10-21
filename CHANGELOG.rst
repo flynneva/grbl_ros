@@ -2,8 +2,9 @@
 Changelog for package grbl_ros
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
+0.0.13
 -----------
+
 * separated methods to semantic file name
 * Delete dashing-release.yml
 * Update dashing-release.yml
