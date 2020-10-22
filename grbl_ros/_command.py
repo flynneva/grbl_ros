@@ -35,7 +35,7 @@ class command(object):
         Startup the GRBL machine with the specified parameters
 
         Args:
-        ----
+        -----
           self (obj): the grbl object
           machine_id (str): the name of the machine
           port (str): the serial port that connects to the grbl device

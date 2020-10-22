@@ -10,8 +10,7 @@ Welcome
    :maxdepth: 2
    :caption: Contents:
 
-   modules
-
+   grbl_ros
 
 Indices and tables
 ==================
