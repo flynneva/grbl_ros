@@ -13,7 +13,7 @@ jobs:
     - name: make docs directory
       run: mkdir docs
     - name: build documentation
-      uses: ammaraskar/sphinx-action@0.4
+      uses: ammaraskar/sphinx-action@master
     - name: deploy
       uses: peaceiris/actions-gh-pages@v3
       with:
