@@ -25,7 +25,7 @@ def test_flake8():
     try:
         rc = main(argv=[])
         assert rc == 0, 'Found errros'
-    except NameError: 
+    except NameError:
         rc, errors = main_with_errors(argv=[])
         assert rc == 0, \
             'Found %d code style errors / warnings:\n' % len(errors) + \
