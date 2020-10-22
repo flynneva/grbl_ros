@@ -11,13 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import os
-
 import pytest
 
 # backwards compatability for older ROS2 distros
-#if os.environ['ROS_DISTRO'] == 'dashing' or \
-#   os.environ['ROS_DISTRO'] == 'eloquent':
 try:
     from ament_flake8.main import main
 except ImportError:
@@ -26,12 +22,10 @@ except ImportError:
 @pytest.mark.flake8
 @pytest.mark.linter
 def test_flake8():
-    #if os.environ['ROS_DISTRO'] == 'dashing' or \
-    #   os.environ['ROS_DISTRO'] == 'eloquent':
     try:
         rc = main(argv=[])
         assert rc == 0, 'Found errros'
-    except: 
+    except NameError: 
         rc, errors = main_with_errors(argv=[])
         assert rc == 0, \
             'Found %d code style errors / warnings:\n' % len(errors) + \
