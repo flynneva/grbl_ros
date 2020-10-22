@@ -2,6 +2,7 @@
 Changelog for package grbl_ros
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+
 0.0.15
 -----------
 * add extra line
@@ -20,6 +21,7 @@ Changelog for package grbl_ros
 * add mkdir docs
 * prepare release
 * Contributors: Evan Flynn
+
 
 0.0.14
 -----------
