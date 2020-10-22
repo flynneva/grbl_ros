@@ -38,7 +38,7 @@ import os
 import sys
 sys.path.insert(0, os.path.abspath('../'))
 
-autodoc_mock_imports = ['grbl_msgs']
+autodoc_mock_imports = ['grbl_msgs', 'geometry_msgs']
 
 # -- Project information -----------------------------------------------------
 
