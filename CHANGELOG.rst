@@ -2,6 +2,27 @@
 Changelog for package grbl_ros
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+
+0.0.15
+-----------
+* add extra line
+* removed whitespace
+* removed env var in test completely
+* switched test from env var to try except
+* fix pep257 error
+* added geometry msgs to autodoc
+* docs work, still need clean up
+* trying to make docs work
+* update readme & docs
+* remove mkdir docs
+* fixed copyright and flake8 errors
+* Merge branch 'devel' of github.com:flynneva/grbl_ros into devel
+* add back in docs folder
+* add mkdir docs
+* prepare release
+* Contributors: Evan Flynn
+
+
 0.0.14
 -----------
 * separated methods to semantic file name
