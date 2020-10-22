@@ -11,7 +11,7 @@ jobs:
     - name: checkout
       uses: actions/checkout@v2
     - name: build documentation
-      uses: ammaraskar/sphinx-action@0.4
+      uses: ammaraskar/sphinx-action@master
     - name: deploy
       uses: peaceiris/actions-gh-pages@v3
       with:
