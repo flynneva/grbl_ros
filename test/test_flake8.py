@@ -16,21 +16,22 @@ import os
 import pytest
 
 # backwards compatability for older ROS2 distros
-if os.environ['ROS_DISTRO'] == 'dashing' or \
-   os.environ['ROS_DISTRO'] == 'eloquent':
+#if os.environ['ROS_DISTRO'] == 'dashing' or \
+#   os.environ['ROS_DISTRO'] == 'eloquent':
+try:
     from ament_flake8.main import main
-else:
+except ImportError:
     from ament_flake8.main import main_with_errors
-
 
 @pytest.mark.flake8
 @pytest.mark.linter
 def test_flake8():
-    if os.environ['ROS_DISTRO'] == 'dashing' or \
-       os.environ['ROS_DISTRO'] == 'eloquent':
+    #if os.environ['ROS_DISTRO'] == 'dashing' or \
+    #   os.environ['ROS_DISTRO'] == 'eloquent':
+    try:
         rc = main(argv=[])
         assert rc == 0, 'Found errros'
-    else:
+    except: 
         rc, errors = main_with_errors(argv=[])
         assert rc == 0, \
             'Found %d code style errors / warnings:\n' % len(errors) + \
