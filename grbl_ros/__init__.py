@@ -18,15 +18,20 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+"""
+__init__.py
+====================================
+This code was ported over to ROS2 from picatostas:
+https://github.com/picatostas/cnc_interface
+Special thanks to his work and the work before him
 
-#   This code was ported over to ROS2 from picatostas:
-#   https://github.com/picatostas/cnc_interface
-#   Special thanks to his work and the work before him
 
+The grbl device class initialized here imports the other control,
+command, configure and logging files within this directory and takes
+a ROS2 node as an argument in order to seperate out the ROS2 specific
+code from the grbl device code.
 
-#   Class valid for interfacing XYZ cartesian grbl device
-#   Future implementations might include control for other
-#   GCODE compatible systems
+"""
 
 from ._command import command
 from ._configure import configure
@@ -35,9 +40,17 @@ from ._logging import logging
 
 
 class grbl(control, command, configure, logging):
+    """
+    Initializes the base grbl device class
+
+    Parameters
+    ----------
+    node
+        A ROS2 node that the grbl device should be a child of
+
+    """
 
     def __init__(self, node):
-        # Default parameter values set in startup
         self.mode = self.MODE.NORMAL
         self.state = self.STATE.ALARM  # initalize to alarm state for safety
         self.node = node  # so we can pass info to ROS
@@ -59,6 +72,6 @@ class grbl(control, command, configure, logging):
         self.z_steps_mm = 0           # number of steps per centimeter
         self.idle = True           # machine is idle
         self.pos = [0.0, 0.0, 0.0]       # current position     [X, Y, Z]
-        self.angular = [0.0, 0.0, 0.0, 0.0]  # quaterion  [X, Y, Z, W]
+        self.angular = [-w0, 0.0, 0.0, 0.0]  # quaterion  [X, Y, Z, W]
         self.origin = [0.0, 0.0, 0.0]        # minimum coordinates  [X, Y, Z]
         self.limits = [0.0, 0.0, 0.0]        # maximum coordinates  [X, Y, Z]

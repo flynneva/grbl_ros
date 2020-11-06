@@ -17,6 +17,12 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
+"""
+_logging.py
+====================================
+The grbl device logging functions
+"""
+
 from enum import IntEnum
 
 from geometry_msgs.msg import Pose
