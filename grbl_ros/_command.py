@@ -35,7 +35,7 @@ class command(object):
     """
     Initializes the base grbl device class.
 
-    Args
+    Args:
     ----
         node: A ROS2 node that the grbl device should be a child of
 
@@ -46,7 +46,7 @@ class command(object):
         """
         Startup the GRBL machine with the specified parameters.
 
-        Args
+        Args:
         ----
             self (obj): the grbl object
             machine_id (str): the name of the machine
@@ -109,11 +109,11 @@ class command(object):
         """
         Send some specified GCODE to the GRBL machine.
 
-        Args
+        Args:
         ----
             gcode (str): GCODE string to send
 
-        Return
+        Return:
         ------
             str: response of GRBL device to GCODE
 
@@ -242,11 +242,11 @@ class command(object):
         """
         Send an entire file of GCODE commands to the GRBL machine.
 
-        Args
+        Args:
         ----
             fpath (str): filepath to GCODE (.nc, .gcode) file to send
 
-        Return
+        Return:
         ------
             str: status of sending the file
 
