@@ -42,7 +42,8 @@ class grbl(control, command, configure, logging):
     """
     Initializes the base grbl device class.
 
-    Args:
+    Args
+    ----
        node (Node): A ROS2 node that the grbl device should be a child of
 
     """
