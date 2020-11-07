@@ -10,10 +10,10 @@ jobs:
     steps:
     - name: checkout
       uses: actions/checkout@v2
+    - name: install sphinx dependencies
+      run: "pip3 install sphinxcontrib-napoleon"
     - name: build documentation
-      uses: ammaraskar/sphinx-action@master
-      with:
-        pre-build-command: "pip3 install sphinxcontrib-napoleon"
+      run: "cd docs/ && make html && cd .."
     - name: deploy
       uses: peaceiris/actions-gh-pages@v3
       with:
