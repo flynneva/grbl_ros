@@ -17,6 +17,12 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
+"""
+Functions to command the GRBL device.
+
+The grbl device command functions
+"""
+
 from geometry_msgs.msg import Pose
 from geometry_msgs.msg import TransformStamped
 
@@ -26,31 +32,37 @@ import serial
 
 
 class command(object):
+    """
+    Initializes the base grbl device class.
+
+    Args:
+    ----
+        node: A ROS2 node that the grbl device should be a child of
+
+    """
 
     def startup(self, machine_id, port, baud, acc, maxx, maxy, maxz,
                 spdf, spdx, spdy, spdz, stepsx, stepsy, stepsz):
         """
-        Summary line.
-
-        Startup the GRBL machine with the specified parameters
+        Startup the GRBL machine with the specified parameters.
 
         Args:
         ----
-          self (obj): the grbl object
-          machine_id (str): the name of the machine
-          port (str): the serial port that connects to the grbl device
-          baud (int): the baud rate to use for serial communication with the grbl device
-          acc (int): the grbl device axis acceleration (mm/s^2)
-          maxx (int): workable travel of the grbl device for its x axis (mm)
-          maxy (int): workable travel of the grbl device for its y axis (mm)
-          maxz (int): workable travel of the grbl device for tts z axis (mm)
-          spdf (int): default speed of the grbl device (mm/min)
-          spdx (int): maximum speed for x axis (mm/min)
-          spdy (int): maximum speed for y axis (mm/min)
-          spdz (int): maximum speed for z axis (mm/min)
-          stepsx (int): number of steps per mm for x axis (steps)
-          stepsy (int): number of steps per mm for y axis (steps)
-          stepsz (int): number of steps per mm for z axis (steps)
+            self (obj): the grbl object
+            machine_id (str): the name of the machine
+            port (str): the serial port that connects to the grbl device
+            baud (int): the baud rate to use for serial communication with the grbl device
+            acc (int): the grbl device axis acceleration (mm/s^2)
+            maxx (int): workable travel of the grbl device for its x axis (mm)
+            maxy (int): workable travel of the grbl device for its y axis (mm)
+            maxz (int): workable travel of the grbl device for tts z axis (mm)
+            spdf (int): default speed of the grbl device (mm/min)
+            spdx (int): maximum speed for x axis (mm/min)
+            spdy (int): maximum speed for y axis (mm/min)
+            spdz (int): maximum speed for z axis (mm/min)
+            stepsx (int): number of steps per mm for x axis (steps)
+            stepsy (int): number of steps per mm for y axis (steps)
+            stepsz (int): number of steps per mm for z axis (steps)
 
         """
         # initiate all CNC parameters read from .launch file
@@ -89,10 +101,23 @@ class command(object):
             return
 
     def shutdown(self):
+        """Shutdown the GRBL machine."""
         # close the serial connection
         self.s.close()
 
     def send(self, gcode):
+        """
+        Send some specified GCODE to the GRBL machine.
+
+        Args:
+        ----
+            gcode (str): GCODE string to send
+
+        Return:
+        ------
+            str: response of GRBL device to GCODE
+
+        """
         # TODO(evanflynn): need to add some input checking to make sure its valid GCODE
         if(len(gcode) > 0):
             responses = []
@@ -112,7 +137,7 @@ class command(object):
                 # in debug mode just return the GCODE that was input
                 return 'Sent: ' + gcode
         else:
-            return 'Input GCODE was blank'
+            return 'MISSING_GCODE'
 
     def handle_responses(self, responses, cmd):
         # iterate over each response line
@@ -214,6 +239,18 @@ class command(object):
         return state_msg
 
     def stream(self, fpath):
+        """
+        Send an entire file of GCODE commands to the GRBL machine.
+
+        Args:
+        ----
+            fpath (str): filepath to GCODE (.nc, .gcode) file to send
+
+        Return:
+        ------
+            str: status of sending the file
+
+        """
         f = open(fpath, 'r')
         for raw_line in f:
             line = raw_line.strip()  # strip all EOL characters for consistency
