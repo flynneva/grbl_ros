@@ -18,8 +18,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 """
-_control.py
-====================================
+Functions to control the GRBL device.
+
 The grbl device control functions
 """
 

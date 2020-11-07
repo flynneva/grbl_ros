@@ -18,11 +18,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 """
-_command.py
-====================================
+Functions to command the GRBL device.
+
 The grbl device command functions
 """
-
 
 from geometry_msgs.msg import Pose
 from geometry_msgs.msg import TransformStamped
@@ -34,7 +33,7 @@ import serial
 
 class command(object):
     """
-    Initializes the base grbl device class
+    Initializes the base grbl device class.
 
     Args:
         node: A ROS2 node that the grbl device should be a child of
@@ -44,7 +43,7 @@ class command(object):
     def startup(self, machine_id, port, baud, acc, maxx, maxy, maxz,
                 spdf, spdx, spdy, spdz, stepsx, stepsy, stepsz):
         """
-        Startup the GRBL machine with the specified parameters
+        Startup the GRBL machine with the specified parameters.
 
         Args:
             self (obj): the grbl object
@@ -100,21 +99,20 @@ class command(object):
             return
 
     def shutdown(self):
-        """
-        Shutdown the GRBL machine
-        """
+        """Shutdown the GRBL machine."""
         # close the serial connection
         self.s.close()
 
     def send(self, gcode):
         """
-        Send some specified GCODE to the GRBL machine
+        Send some specified GCODE to the GRBL machine.
 
         Args:
             gcode (str): GCODE string to send
 
-        Returns:
+        Return:
             str: response of GRBL device to GCODE
+
         """
         # TODO(evanflynn): need to add some input checking to make sure its valid GCODE
         if(len(gcode) > 0):
@@ -238,13 +236,14 @@ class command(object):
 
     def stream(self, fpath):
         """
-        Send an entire file of GCODE commands to the GRBL machine
+        Send an entire file of GCODE commands to the GRBL machine.
 
         Args:
             fpath (str): filepath to GCODE (.nc, .gcode) file to send
 
-        Returns:
-            str: status of sending the file 
+        Return:
+            str: status of sending the file
+
         """
         f = open(fpath, 'r')
         for raw_line in f:

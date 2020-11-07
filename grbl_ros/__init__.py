@@ -19,12 +19,11 @@
 # THE SOFTWARE.
 
 """
-__init__.py
-====================================
+Functions to initialize the GRBL device.
+
 This code was ported over to ROS2 from picatostas:
 https://github.com/picatostas/cnc_interface
 Special thanks to his work and the work before him
-
 
 The grbl device class initialized here imports the other control,
 command, configure and logging files within this directory and takes
@@ -41,12 +40,10 @@ from ._logging import logging
 
 class grbl(control, command, configure, logging):
     """
-    Initializes the base grbl device class
+    Initializes the base grbl device class.
 
-    Parameters
-    ----------
-    node
-        A ROS2 node that the grbl device should be a child of
+    Args:
+       node (Node): A ROS2 node that the grbl device should be a child of
 
     """
 
@@ -67,11 +64,11 @@ class grbl(control, command, configure, logging):
         self.x_max_speed = 0
         self.y_max_speed = 0
         self.z_max_speed = 0
-        self.x_steps_mm = 0           # number of steps per centimeter
-        self.y_steps_mm = 0           # number of steps per centimeter
-        self.z_steps_mm = 0           # number of steps per centimeter
-        self.idle = True           # machine is idle
-        self.pos = [0.0, 0.0, 0.0]       # current position     [X, Y, Z]
-        self.angular = [-w0, 0.0, 0.0, 0.0]  # quaterion  [X, Y, Z, W]
+        self.x_steps_mm = 0                  # number of steps per centimeter
+        self.y_steps_mm = 0                  # number of steps per centimeter
+        self.z_steps_mm = 0                  # number of steps per centimeter
+        self.idle = True                     # machine is idle
+        self.pos = [0.0, 0.0, 0.0]           # current position     [X, Y, Z]
+        self.angular = [0.0, 0.0, 0.0, 0.0]  # quaterion  [X, Y, Z, W]
         self.origin = [0.0, 0.0, 0.0]        # minimum coordinates  [X, Y, Z]
         self.limits = [0.0, 0.0, 0.0]        # maximum coordinates  [X, Y, Z]

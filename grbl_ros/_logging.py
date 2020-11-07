@@ -18,8 +18,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 """
-_logging.py
-====================================
+Functions to handle logging for the GRBL device.
+
 The grbl device logging functions
 """
 
