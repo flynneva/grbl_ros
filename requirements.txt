@@ -1,0 +1,7 @@
+ament_index_python==1.0.1
+launch_ros==0.10.3
+ament_copyright==0.9.5
+ament_pep257==0.9.5
+ament_flake8==0.9.5
+pytest==4.6.9
+pyserial==3.4
