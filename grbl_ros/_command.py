@@ -35,10 +35,6 @@ class command(object):
     """
     Command class to hold all command functions for the grbl device class.
 
-    Args:
-    ----
-        object: A python object
-
     """
 
     def startup(self, machine_id, port, baud, acc, maxx, maxy, maxz,

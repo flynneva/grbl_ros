@@ -32,10 +32,6 @@ class logging(object):
     """
     Logging class to hold all logging functions for the grbl device class.
 
-    Args:
-    ----
-        object: A python object
-
     """
 
     def getStatus(self):

@@ -28,10 +28,6 @@ class control(object):
     """
     Control class to hold all control functions for the grbl device class.
 
-    Args:
-    ----
-        object: A python object
-
     """
 
     def home(self):

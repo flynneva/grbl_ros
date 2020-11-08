@@ -28,10 +28,6 @@ class configure(object):
     """
     Configure class to hold all configure functions for the grbl device class.
 
-    Args:
-    ----
-        object: A python object
-
     """
 
     def setSpeed(self, speed):

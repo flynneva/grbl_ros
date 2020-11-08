@@ -12,6 +12,7 @@ The grbl_ros package is meant to provide an easy way to connect and interface yo
     :maxdepth: 3
     :caption: Contents:
 
+    device
     init
     command
     control
