@@ -25,7 +25,15 @@ The grbl device control functions
 
 
 class control(object):
+    """
+    Control class to hold all control functions for the grbl device class.
+
+    Args:
+    ----
+        object: A python object
+
+    """
 
     def home(self):
-        self.s.write(b'$H\n')
-        return self.s.readline().decode('utf-8').strip()
+        """Home the GRBL device."""
+        self.send(self, '$H')

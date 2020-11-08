@@ -29,8 +29,17 @@ from geometry_msgs.msg import Pose
 
 
 class logging(object):
+    """
+    Logging class to hold all logging functions for the grbl device class.
+
+    Args:
+    ----
+        object: A python object
+
+    """
 
     def getStatus(self):
+        """Get the current status of the GRBL device."""
         # TODO(evanflynn): status should be ROS msg?
         if(self.mode == self.MODE.NORMAL):
             # ? returns the active GRBL state & current machine and work positions
@@ -41,6 +50,7 @@ class logging(object):
             return 'UNDEFINED GRBL MODE'
 
     def getSettings(self):
+        """Get the current settings of the GRBL device."""
         # TODO(evanflynn): status should be ROS msg?
         if(self.mode == self.MODE.NORMAL):
             # ? returns the active GRBL state & current machine and work positions
@@ -51,6 +61,7 @@ class logging(object):
             return 'UNDEFINED GRBL MODE'
 
     def getPose(self):
+        """Get the last Pose recorded of the GRBL device."""
         pose = Pose()
         pose.position.x = float(self.pos[0])
         pose.position.y = float(self.pos[1])
@@ -75,12 +86,14 @@ class logging(object):
             return status
 
     class MODE(IntEnum):
-        # enum class for operation modes helpful for debugging
+        """Operation modes of the GRBL device, helpful for debugging."""
+
         NORMAL = 0
         DEBUG = 1
 
     class STATE(IntEnum):
-        # enum class for operation states
+        """Operation states of the GRBL device."""
+
         IDLE = 0
         RUN = 1
         HOLD = 2
@@ -92,8 +105,13 @@ class logging(object):
         SLEEP = 8
 
     class STATUS(IntEnum):
-        # enum class for grbl error list
-        # http://domoticx.com/cnc-machine-grbl-error-list/
+        """
+        Official GRBL error list.
+
+        http://domoticx.com/cnc-machine-grbl-error-list/
+
+        """
+
         NO_ERROR = 0
         MISSING_LETTER = 1  # G-code words consist of a letter and a value. Letter not found
         INVALID_NUMERIC = 2  # Numeric value format is not valid or missing an expected value
