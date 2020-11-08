@@ -33,11 +33,11 @@ import serial
 
 class command(object):
     """
-    Initializes the base grbl device class.
+    Command class to hold all command functions for the grbl device class.
 
     Args:
     ----
-        node: A ROS2 node that the grbl device should be a child of
+        object: A python object
 
     """
 
@@ -102,6 +102,7 @@ class command(object):
 
     def shutdown(self):
         """Shutdown the GRBL machine."""
+        # TODO(flynneva): probably should do some more serious shutdown logic here
         # close the serial connection
         self.s.close()
 

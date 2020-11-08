@@ -25,6 +25,14 @@ The grbl device configure functions
 
 
 class configure(object):
+    """
+    Configure class to hold all configure functions for the grbl device class.
+
+    Args:
+    ----
+        object: A python object
+
+    """
 
     def setSpeed(self, speed):
         self.defaultSpeed = speed
@@ -37,16 +45,20 @@ class configure(object):
         self.pos = [x, y, z]
 
     def clearAlarm(self):
+        """Clear the alarm on the GRBL machine."""
         return self.send(self, r'\$X')
 
     def enableSteppers(self):
+        """Enable the motors on the GRBL machine."""
         return self.send(self, 'M17')
 
     def feedHold(self):
+        """Feed hold the GRBL machine."""
         return self.send(self, r'\!')
 
     def disableSteppers(self):
-        return self.send(self, 'M18')
+        """Disable the motors on the GRBL machine."""
+        return self.send(self, 'M17')
 
     def ensureMovementMode(self, absoluteMode=True):
         # GRBL has two movement modes
