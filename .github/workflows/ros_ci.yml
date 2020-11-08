@@ -49,7 +49,7 @@ jobs:
           use-ros2-testing: true
           required-ros-distributions: ${{ matrix.ros_distribution }}
       - name: install dependencies
-        run: "ls && cd ros_ws/src/ && ls && cd grbl_ros && pip3 install -r ros_ws/src/grbl_ros/requirements.txt"
+        run: "pip3 install -r ros_ws/src/requirements.txt"
       - name: build and test
         uses: ros-tooling/action-ros-ci@0.0.19
         with:
