@@ -30,8 +30,95 @@
 
           <div class="body" role="main">
             
-  <div class="section" id="welcome">
-<h1>Welcome<a class="headerlink" href="#welcome" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="module-grbl_ros.__init__">
+<span id="welcome"></span><h1>Welcome<a class="headerlink" href="#module-grbl_ros.__init__" title="Permalink to this headline">¶</a></h1>
+<p>Functions to initialize the GRBL device.</p>
+<p>This code was ported over to ROS2 from picatostas:
+<a class="reference external" href="https://github.com/picatostas/cnc_interface">https://github.com/picatostas/cnc_interface</a>
+Special thanks to his work and the work before him</p>
+<p>The grbl device class initialized here imports the other control,
+command, configure and logging files within this directory and takes
+a ROS2 node as an argument in order to seperate out the ROS2 specific
+code from the grbl device code.</p>
+<dl class="class">
+<dt id="grbl_ros.__init__.grbl">
+<em class="property">class </em><code class="sig-prename descclassname">grbl_ros.__init__.</code><code class="sig-name descname">grbl</code><span class="sig-paren">(</span><em class="sig-param">node</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/grbl_ros/__init__.html#grbl"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grbl_ros.__init__.grbl" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes the base grbl device class.</p>
+<blockquote>
+<div><p>node (Node): A ROS2 node that the grbl device should be a child of</p>
+</div></blockquote>
+</dd></dl>
+
+<span class="target" id="module-grbl_ros._command"></span><p>Functions to command the GRBL device.</p>
+<p>The grbl device command functions</p>
+<dl class="class">
+<dt id="grbl_ros._command.command">
+<em class="property">class </em><code class="sig-prename descclassname">grbl_ros._command.</code><code class="sig-name descname">command</code><a class="reference internal" href="_modules/grbl_ros/_command.html#command"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grbl_ros._command.command" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes the base grbl device class.</p>
+<blockquote>
+<div><p>node: A ROS2 node that the grbl device should be a child of</p>
+</div></blockquote>
+<dl class="method">
+<dt id="grbl_ros._command.command.send">
+<code class="sig-name descname">send</code><span class="sig-paren">(</span><em class="sig-param">gcode</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/grbl_ros/_command.html#command.send"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grbl_ros._command.command.send" title="Permalink to this definition">¶</a></dt>
+<dd><p>Send some specified GCODE to the GRBL machine.</p>
+<blockquote>
+<div><p>gcode (str): GCODE string to send</p>
+</div></blockquote>
+<blockquote>
+<div><p>str: response of GRBL device to GCODE</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="grbl_ros._command.command.shutdown">
+<code class="sig-name descname">shutdown</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/grbl_ros/_command.html#command.shutdown"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grbl_ros._command.command.shutdown" title="Permalink to this definition">¶</a></dt>
+<dd><p>Shutdown the GRBL machine.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="grbl_ros._command.command.startup">
+<code class="sig-name descname">startup</code><span class="sig-paren">(</span><em class="sig-param">machine_id</em>, <em class="sig-param">port</em>, <em class="sig-param">baud</em>, <em class="sig-param">acc</em>, <em class="sig-param">maxx</em>, <em class="sig-param">maxy</em>, <em class="sig-param">maxz</em>, <em class="sig-param">spdf</em>, <em class="sig-param">spdx</em>, <em class="sig-param">spdy</em>, <em class="sig-param">spdz</em>, <em class="sig-param">stepsx</em>, <em class="sig-param">stepsy</em>, <em class="sig-param">stepsz</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/grbl_ros/_command.html#command.startup"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grbl_ros._command.command.startup" title="Permalink to this definition">¶</a></dt>
+<dd><p>Startup the GRBL machine with the specified parameters.</p>
+<blockquote>
+<div><p>self (obj): the grbl object
+machine_id (str): the name of the machine
+port (str): the serial port that connects to the grbl device
+baud (int): the baud rate to use for serial communication with the grbl device
+acc (int): the grbl device axis acceleration (mm/s^2)
+maxx (int): workable travel of the grbl device for its x axis (mm)
+maxy (int): workable travel of the grbl device for its y axis (mm)
+maxz (int): workable travel of the grbl device for tts z axis (mm)
+spdf (int): default speed of the grbl device (mm/min)
+spdx (int): maximum speed for x axis (mm/min)
+spdy (int): maximum speed for y axis (mm/min)
+spdz (int): maximum speed for z axis (mm/min)
+stepsx (int): number of steps per mm for x axis (steps)
+stepsy (int): number of steps per mm for y axis (steps)
+stepsz (int): number of steps per mm for z axis (steps)</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="grbl_ros._command.command.stream">
+<code class="sig-name descname">stream</code><span class="sig-paren">(</span><em class="sig-param">fpath</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/grbl_ros/_command.html#command.stream"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grbl_ros._command.command.stream" title="Permalink to this definition">¶</a></dt>
+<dd><p>Send an entire file of GCODE commands to the GRBL machine.</p>
+<blockquote>
+<div><p>fpath (str): filepath to GCODE (.nc, .gcode) file to send</p>
+</div></blockquote>
+<blockquote>
+<div><p>str: status of sending the file</p>
+</div></blockquote>
+</dd></dl>
+
+</dd></dl>
+
+<span class="target" id="module-grbl_ros._control"></span><p>Functions to control the GRBL device.</p>
+<p>The grbl device control functions</p>
+<span class="target" id="module-grbl_ros._configure"></span><p>Functions to configure the GRBL device.</p>
+<p>The grbl device configure functions</p>
+<span class="target" id="module-grbl_ros._logging"></span><p>Functions to handle logging for the GRBL device.</p>
+<p>The grbl device logging functions</p>
 <div class="toctree-wrapper compound">
 </div>
 </div>

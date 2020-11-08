@@ -1,0 +1,357 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>grbl_ros._command &#8212; grbl_ros 0.0.15 documentation</title>
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for grbl_ros._command</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright 2020 Evan Flynn</span>
+<span class="c1">#</span>
+<span class="c1"># Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+<span class="c1"># of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+<span class="c1"># in the Software without restriction, including without limitation the rights</span>
+<span class="c1"># to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+<span class="c1"># copies of the Software, and to permit persons to whom the Software is</span>
+<span class="c1"># furnished to do so, subject to the following conditions:</span>
+<span class="c1">#</span>
+<span class="c1"># The above copyright notice and this permission notice shall be included in</span>
+<span class="c1"># all copies or substantial portions of the Software.</span>
+<span class="c1">#</span>
+<span class="c1"># THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+<span class="c1"># IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+<span class="c1"># FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL</span>
+<span class="c1"># THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+<span class="c1"># LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+<span class="c1"># OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN</span>
+<span class="c1"># THE SOFTWARE.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Functions to command the GRBL device.</span>
+
+<span class="sd">The grbl device command functions</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">geometry_msgs.msg</span> <span class="kn">import</span> <span class="n">Pose</span>
+<span class="kn">from</span> <span class="nn">geometry_msgs.msg</span> <span class="kn">import</span> <span class="n">TransformStamped</span>
+
+<span class="kn">from</span> <span class="nn">grbl_msgs.msg</span> <span class="kn">import</span> <span class="n">State</span>
+
+<span class="kn">import</span> <span class="nn">serial</span>
+
+
+<div class="viewcode-block" id="command"><a class="viewcode-back" href="../../index.html#grbl_ros._command.command">[docs]</a><span class="k">class</span> <span class="nc">command</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Initializes the base grbl device class.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">    ----</span>
+<span class="sd">        node: A ROS2 node that the grbl device should be a child of</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="command.startup"><a class="viewcode-back" href="../../index.html#grbl_ros._command.command.startup">[docs]</a>    <span class="k">def</span> <span class="nf">startup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">machine_id</span><span class="p">,</span> <span class="n">port</span><span class="p">,</span> <span class="n">baud</span><span class="p">,</span> <span class="n">acc</span><span class="p">,</span> <span class="n">maxx</span><span class="p">,</span> <span class="n">maxy</span><span class="p">,</span> <span class="n">maxz</span><span class="p">,</span>
+                <span class="n">spdf</span><span class="p">,</span> <span class="n">spdx</span><span class="p">,</span> <span class="n">spdy</span><span class="p">,</span> <span class="n">spdz</span><span class="p">,</span> <span class="n">stepsx</span><span class="p">,</span> <span class="n">stepsy</span><span class="p">,</span> <span class="n">stepsz</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Startup the GRBL machine with the specified parameters.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">        ----</span>
+<span class="sd">            self (obj): the grbl object</span>
+<span class="sd">            machine_id (str): the name of the machine</span>
+<span class="sd">            port (str): the serial port that connects to the grbl device</span>
+<span class="sd">            baud (int): the baud rate to use for serial communication with the grbl device</span>
+<span class="sd">            acc (int): the grbl device axis acceleration (mm/s^2)</span>
+<span class="sd">            maxx (int): workable travel of the grbl device for its x axis (mm)</span>
+<span class="sd">            maxy (int): workable travel of the grbl device for its y axis (mm)</span>
+<span class="sd">            maxz (int): workable travel of the grbl device for tts z axis (mm)</span>
+<span class="sd">            spdf (int): default speed of the grbl device (mm/min)</span>
+<span class="sd">            spdx (int): maximum speed for x axis (mm/min)</span>
+<span class="sd">            spdy (int): maximum speed for y axis (mm/min)</span>
+<span class="sd">            spdz (int): maximum speed for z axis (mm/min)</span>
+<span class="sd">            stepsx (int): number of steps per mm for x axis (steps)</span>
+<span class="sd">            stepsy (int): number of steps per mm for y axis (steps)</span>
+<span class="sd">            stepsz (int): number of steps per mm for z axis (steps)</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># initiate all CNC parameters read from .launch file</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">machine_id</span> <span class="o">=</span> <span class="n">machine_id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">baudrate</span> <span class="o">=</span> <span class="n">baud</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">port</span> <span class="o">=</span> <span class="n">port</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">acceleration</span> <span class="o">=</span> <span class="n">acc</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x_max</span> <span class="o">=</span> <span class="n">maxx</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">y_max</span> <span class="o">=</span> <span class="n">maxy</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">z_max</span> <span class="o">=</span> <span class="n">maxz</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">defaultSpeed</span> <span class="o">=</span> <span class="n">spdf</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x_max_speed</span> <span class="o">=</span> <span class="n">spdx</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">y_max_speed</span> <span class="o">=</span> <span class="n">spdy</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">z_max_speed</span> <span class="o">=</span> <span class="n">spdz</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x_steps_mm</span> <span class="o">=</span> <span class="n">stepsx</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">y_steps_mm</span> <span class="o">=</span> <span class="n">stepsy</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">z_steps_mm</span> <span class="o">=</span> <span class="n">stepsz</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">limits</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">x_max</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_max</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">z_max</span><span class="p">]</span>
+        <span class="c1"># initiates the serial port</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">s</span> <span class="o">=</span> <span class="n">serial</span><span class="o">.</span><span class="n">Serial</span><span class="p">(</span><span class="n">port</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">port</span><span class="p">,</span> <span class="n">baudrate</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">baudrate</span><span class="p">)</span>
+            <span class="c1"># set movement to Absolute coordinates</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ensureMovementMode</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+            <span class="c1"># try to get current position</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="s1">&#39;?&#39;</span><span class="p">)</span>
+            <span class="c1"># start homing procedure</span>
+            <span class="c1"># TODO(flynneva): should this be done at startup?</span>
+            <span class="c1"># should probably be configurable by user if they want to or not</span>
+            <span class="c1"># self.home()</span>
+            <span class="c1"># TODO(flynneva): could cause issues if user is resuming a job</span>
+            <span class="c1"># set the current position as the origin (GRBL sometimes starts with z not 0)</span>
+            <span class="c1"># self.setOrigin()</span>
+        <span class="k">except</span> <span class="n">serial</span><span class="o">.</span><span class="n">serialutil</span><span class="o">.</span><span class="n">SerialException</span><span class="p">:</span>
+            <span class="c1"># Could not detect GRBL device on serial port &#39; + self.port</span>
+            <span class="c1"># Are you sure the GRBL device is connected and powered on?</span>
+            <span class="k">return</span></div>
+
+<div class="viewcode-block" id="command.shutdown"><a class="viewcode-back" href="../../index.html#grbl_ros._command.command.shutdown">[docs]</a>    <span class="k">def</span> <span class="nf">shutdown</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Shutdown the GRBL machine.&quot;&quot;&quot;</span>
+        <span class="c1"># close the serial connection</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">s</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="command.send"><a class="viewcode-back" href="../../index.html#grbl_ros._command.command.send">[docs]</a>    <span class="k">def</span> <span class="nf">send</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gcode</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Send some specified GCODE to the GRBL machine.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">        ----</span>
+<span class="sd">            gcode (str): GCODE string to send</span>
+
+<span class="sd">        Return:</span>
+<span class="sd">        ------</span>
+<span class="sd">            str: response of GRBL device to GCODE</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># TODO(evanflynn): need to add some input checking to make sure its valid GCODE</span>
+        <span class="k">if</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">gcode</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">):</span>
+            <span class="n">responses</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">MODE</span><span class="o">.</span><span class="n">NORMAL</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">s</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">str</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">gcode</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">))</span>
+                <span class="c1"># wait until receive response with EOL character</span>
+                <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">s</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                <span class="k">if</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">):</span>
+                    <span class="n">responses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+                <span class="c1"># check to see if there are more lines in waiting</span>
+                <span class="k">while</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">s</span><span class="o">.</span><span class="n">inWaiting</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">):</span>
+                    <span class="n">responses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">s</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">handle_responses</span><span class="p">(</span><span class="n">responses</span><span class="p">,</span> <span class="n">gcode</span><span class="p">)</span>
+                <span class="c1"># last response should always be the state of grbl</span>
+                <span class="k">return</span> <span class="n">responses</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">elif</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">MODE</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">):</span>
+                <span class="c1"># in debug mode just return the GCODE that was input</span>
+                <span class="k">return</span> <span class="s1">&#39;Sent: &#39;</span> <span class="o">+</span> <span class="n">gcode</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;MISSING_GCODE&#39;</span></div>
+
+    <span class="k">def</span> <span class="nf">handle_responses</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">responses</span><span class="p">,</span> <span class="n">cmd</span><span class="p">):</span>
+        <span class="c1"># iterate over each response line</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">responses</span><span class="p">:</span>
+            <span class="k">if</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;ok&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">node</span><span class="o">.</span><span class="n">get_logger</span><span class="p">()</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;[ &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; ] &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">line</span><span class="p">))</span>
+            <span class="c1"># check if line is grbl status report</span>
+            <span class="k">if</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;&lt;&#39;</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">parse_status</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">parse_status</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">status</span><span class="p">):</span>
+        <span class="c1"># seperate fields using pipe delimeter |</span>
+        <span class="n">fields</span> <span class="o">=</span> <span class="n">status</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;|&#39;</span><span class="p">)</span>
+        <span class="c1"># clean first and last field of &#39;&lt;&gt;&#39;</span>
+        <span class="n">fields</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">fields</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">:]</span>
+        <span class="n">last_field</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">fields</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="n">fields</span><span class="p">[</span><span class="n">last_field</span><span class="p">]</span> <span class="o">=</span> <span class="n">fields</span><span class="p">[</span><span class="n">last_field</span><span class="p">][:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="c1"># for f in fields:</span>
+        <span class="c1">#    self.node.get_logger().info(str(f))</span>
+        <span class="c1"># followed grbl message construction docs</span>
+        <span class="c1"># https://github.com/gnea/grbl/wiki/Grbl-v1.1-Interface#grbl-response-messages</span>
+        <span class="c1"># The first (Machine State) and second (Current Position) data fields</span>
+        <span class="c1"># are always included in every report.</span>
+        <span class="c1"># handle machine state</span>
+        <span class="n">state_msg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">handle_state</span><span class="p">(</span><span class="n">fields</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="c1"># parse current position</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">handle_current_pose</span><span class="p">(</span><span class="n">fields</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="c1"># publish status</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">node</span><span class="o">.</span><span class="n">pub_state_</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="n">state_msg</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">handle_current_pose</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pose</span><span class="p">):</span>
+        <span class="n">transforms</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">machine_tf</span> <span class="o">=</span> <span class="n">TransformStamped</span><span class="p">()</span>
+        <span class="n">machine_tf</span><span class="o">.</span><span class="n">header</span><span class="o">.</span><span class="n">frame_id</span> <span class="o">=</span> <span class="s1">&#39;base_link&#39;</span>
+        <span class="n">machine_tf</span><span class="o">.</span><span class="n">header</span><span class="o">.</span><span class="n">stamp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">node</span><span class="o">.</span><span class="n">get_clock</span><span class="p">()</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">to_msg</span><span class="p">()</span>
+        <span class="n">machine_tf</span><span class="o">.</span><span class="n">child_frame_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">machine_id</span> <span class="o">+</span> <span class="s1">&#39;_machine&#39;</span>
+        <span class="n">machine_pose</span> <span class="o">=</span> <span class="n">Pose</span><span class="p">()</span>
+
+        <span class="c1"># parse coordinates from current position</span>
+        <span class="n">coords</span> <span class="o">=</span> <span class="n">pose</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">coords</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="mf">1000.0</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">coords</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="mf">1000.0</span>
+        <span class="n">z</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">coords</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="o">/</span> <span class="mf">1000.0</span>
+
+        <span class="n">machine_tf</span><span class="o">.</span><span class="n">transform</span><span class="o">.</span><span class="n">translation</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">x</span>
+        <span class="n">machine_tf</span><span class="o">.</span><span class="n">transform</span><span class="o">.</span><span class="n">translation</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">y</span>
+        <span class="n">machine_tf</span><span class="o">.</span><span class="n">transform</span><span class="o">.</span><span class="n">translation</span><span class="o">.</span><span class="n">z</span> <span class="o">=</span> <span class="n">z</span>
+
+        <span class="n">machine_pose</span><span class="o">.</span><span class="n">position</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">x</span>
+        <span class="n">machine_pose</span><span class="o">.</span><span class="n">position</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">y</span>
+        <span class="n">machine_pose</span><span class="o">.</span><span class="n">position</span><span class="o">.</span><span class="n">z</span> <span class="o">=</span> <span class="n">z</span>
+
+        <span class="n">transforms</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">machine_tf</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">node</span><span class="o">.</span><span class="n">pub_mpos_</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="n">machine_pose</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">node</span><span class="o">.</span><span class="n">pub_tf_</span><span class="o">.</span><span class="n">sendTransform</span><span class="p">(</span><span class="n">transforms</span><span class="p">)</span>
+        <span class="k">return</span>
+
+    <span class="k">def</span> <span class="nf">handle_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+        <span class="n">state_msg</span> <span class="o">=</span> <span class="n">State</span><span class="p">()</span>
+        <span class="n">state_msg</span><span class="o">.</span><span class="n">header</span><span class="o">.</span><span class="n">stamp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">node</span><span class="o">.</span><span class="n">get_clock</span><span class="p">()</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">to_msg</span><span class="p">()</span>
+        <span class="n">state_msg</span><span class="o">.</span><span class="n">header</span><span class="o">.</span><span class="n">frame_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">machine_id</span>
+        <span class="c1"># TODO(flynneva): should probably be a switch/case?</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">STATE</span><span class="o">.</span><span class="n">IDLE</span><span class="o">.</span><span class="n">name</span><span class="p">):</span>
+            <span class="n">state_msg</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">STATE</span><span class="o">.</span><span class="n">IDLE</span>
+            <span class="n">state_msg</span><span class="o">.</span><span class="n">state_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">STATE</span><span class="o">.</span><span class="n">IDLE</span><span class="o">.</span><span class="n">name</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">STATE</span><span class="o">.</span><span class="n">IDLE</span>
+        <span class="k">elif</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">STATE</span><span class="o">.</span><span class="n">RUN</span><span class="o">.</span><span class="n">name</span><span class="p">):</span>
+            <span class="n">state_msg</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">STATE</span><span class="o">.</span><span class="n">RUN</span>
+            <span class="n">state_msg</span><span class="o">.</span><span class="n">state_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">STATE</span><span class="o">.</span><span class="n">RUN</span><span class="o">.</span><span class="n">name</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">STATE</span><span class="o">.</span><span class="n">RUN</span>
+        <span class="k">elif</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">STATE</span><span class="o">.</span><span class="n">ALARM</span><span class="o">.</span><span class="n">name</span><span class="p">):</span>
+            <span class="n">state_msg</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">STATE</span><span class="o">.</span><span class="n">ALARM</span>
+            <span class="n">state_msg</span><span class="o">.</span><span class="n">state_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">STATE</span><span class="o">.</span><span class="n">ALARM</span><span class="o">.</span><span class="n">name</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">STATE</span><span class="o">.</span><span class="n">ALARM</span>
+        <span class="k">elif</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">STATE</span><span class="o">.</span><span class="n">JOG</span><span class="o">.</span><span class="n">name</span><span class="p">):</span>
+            <span class="n">state_msg</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">STATE</span><span class="o">.</span><span class="n">JOG</span>
+            <span class="n">state_msg</span><span class="o">.</span><span class="n">state_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">STATE</span><span class="o">.</span><span class="n">JOG</span><span class="o">.</span><span class="n">name</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">STATE</span><span class="o">.</span><span class="n">JOG</span>
+        <span class="k">elif</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">STATE</span><span class="o">.</span><span class="n">HOLD</span><span class="o">.</span><span class="n">name</span><span class="p">):</span>
+            <span class="n">state_msg</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">STATE</span><span class="o">.</span><span class="n">HOLD</span>
+            <span class="n">state_msg</span><span class="o">.</span><span class="n">state_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">STATE</span><span class="o">.</span><span class="n">HOLD</span><span class="o">.</span><span class="n">name</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">STATE</span><span class="o">.</span><span class="n">HOLD</span>
+        <span class="k">elif</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">STATE</span><span class="o">.</span><span class="n">DOOR</span><span class="o">.</span><span class="n">name</span><span class="p">):</span>
+            <span class="n">state_msg</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">STATE</span><span class="o">.</span><span class="n">DOOR</span>
+            <span class="n">state_msg</span><span class="o">.</span><span class="n">state_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">STATE</span><span class="o">.</span><span class="n">DOOR</span><span class="o">.</span><span class="n">name</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">STATE</span><span class="o">.</span><span class="n">DOOR</span>
+        <span class="k">elif</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">STATE</span><span class="o">.</span><span class="n">CHECK</span><span class="o">.</span><span class="n">name</span><span class="p">):</span>
+            <span class="n">state_msg</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">STATE</span><span class="o">.</span><span class="n">CHECK</span>
+            <span class="n">state_msg</span><span class="o">.</span><span class="n">state_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">STATE</span><span class="o">.</span><span class="n">CHECK</span><span class="o">.</span><span class="n">name</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">STATE</span><span class="o">.</span><span class="n">CHECK</span>
+        <span class="k">elif</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">STATE</span><span class="o">.</span><span class="n">HOME</span><span class="o">.</span><span class="n">name</span><span class="p">):</span>
+            <span class="n">state_msg</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">STATE</span><span class="o">.</span><span class="n">HOME</span>
+            <span class="n">state_msg</span><span class="o">.</span><span class="n">state_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">STATE</span><span class="o">.</span><span class="n">HOME</span><span class="o">.</span><span class="n">name</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">STATE</span><span class="o">.</span><span class="n">HOME</span>
+        <span class="k">elif</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">STATE</span><span class="o">.</span><span class="n">SLEEP</span><span class="o">.</span><span class="n">name</span><span class="p">):</span>
+            <span class="n">state_msg</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">STATE</span><span class="o">.</span><span class="n">SLEEP</span>
+            <span class="n">state_msg</span><span class="o">.</span><span class="n">state_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">STATE</span><span class="o">.</span><span class="n">SLEEP</span><span class="o">.</span><span class="n">name</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">STATE</span><span class="o">.</span><span class="n">SLEEP</span>
+        <span class="k">return</span> <span class="n">state_msg</span>
+
+<div class="viewcode-block" id="command.stream"><a class="viewcode-back" href="../../index.html#grbl_ros._command.command.stream">[docs]</a>    <span class="k">def</span> <span class="nf">stream</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fpath</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Send an entire file of GCODE commands to the GRBL machine.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">        ----</span>
+<span class="sd">            fpath (str): filepath to GCODE (.nc, .gcode) file to send</span>
+
+<span class="sd">        Return:</span>
+<span class="sd">        ------</span>
+<span class="sd">            str: status of sending the file</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">raw_line</span> <span class="ow">in</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="n">raw_line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>  <span class="c1"># strip all EOL characters for consistency</span>
+            <span class="n">status</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+            <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">MODE</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">):</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;    &#39;</span> <span class="o">+</span> <span class="n">status</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s1">&#39;ok&#39;</span></div></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">grbl_ros</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.4.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
