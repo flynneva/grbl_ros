@@ -39,10 +39,7 @@ from ._logging import logging
 
 
 class grbl(control, command, configure, logging):
-    """
-    Initializes the base grbl device class.
-
-    """
+    """Initializes the base grbl device class."""
 
     def __init__(self, node):
         self.mode = self.MODE.NORMAL

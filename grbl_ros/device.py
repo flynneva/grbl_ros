@@ -44,7 +44,7 @@ class grbl_node(Node):
     This nodes main function is to publish the real-time pose of the GRBL device as
     a ROS2 transform (tf).  Additionally it enables the ROS2 user to send GCODE commands
     and files to the GRBL device and monitor its status.
-    
+
     """
 
     def __init__(self):
@@ -159,7 +159,7 @@ class grbl_node(Node):
 
     def gcodeCallback(self, goal_handle):
         """
-        The send GCODE ROS2 action callback.
+        Send GCODE ROS2 action callback.
 
         This is the callback called each time the ROS2 send_gcode_cmd action is called.
 
@@ -198,7 +198,7 @@ class grbl_node(Node):
 
     def streamCallback(self, goal_handle):
         """
-        The send GCODE file ROS2 action callback.
+        Send GCODE file ROS2 action callback.
 
         This is the callback called each time the ROS2 send_gcode_file action is called
         and calls the send_gcode_cmd action for each line in the given file.
@@ -240,7 +240,7 @@ class grbl_node(Node):
 
     def file_feedback(self, feedback):
         """
-        The feedback function during the send_gcode_file ROS2 aciton.
+        Feedback function during the send_gcode_file ROS2 aciton.
 
         This feedback callback can be called during the send_gcode_file in order to provide
         feedback to the user as the ROS2 action is executed.

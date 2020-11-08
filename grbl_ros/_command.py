@@ -32,10 +32,7 @@ import serial
 
 
 class command(object):
-    """
-    Command class to hold all command functions for the grbl device class.
-
-    """
+    """Command class to hold all command functions for the grbl device class."""
 
     def startup(self, machine_id, port, baud, acc, maxx, maxy, maxz,
                 spdf, spdx, spdy, spdz, stepsx, stepsy, stepsz):
