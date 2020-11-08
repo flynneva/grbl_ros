@@ -66,11 +66,11 @@
 
 <div class="viewcode-block" id="command"><a class="viewcode-back" href="../../command.html#grbl_ros._command.command">[docs]</a><span class="k">class</span> <span class="nc">command</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Initializes the base grbl device class.</span>
+<span class="sd">    Command class to hold all command functions for the grbl device class.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">    ----</span>
-<span class="sd">        node: A ROS2 node that the grbl device should be a child of</span>
+<span class="sd">        object: A python object</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -135,6 +135,7 @@
 
 <div class="viewcode-block" id="command.shutdown"><a class="viewcode-back" href="../../command.html#grbl_ros._command.command.shutdown">[docs]</a>    <span class="k">def</span> <span class="nf">shutdown</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Shutdown the GRBL machine.&quot;&quot;&quot;</span>
+        <span class="c1"># TODO(flynneva): probably should do some more serious shutdown logic here</span>
         <span class="c1"># close the serial connection</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">s</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
 

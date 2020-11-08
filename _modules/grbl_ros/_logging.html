@@ -1,0 +1,231 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>grbl_ros._logging &#8212; grbl_ros 0.0.15 documentation</title>
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for grbl_ros._logging</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright 2020 Evan Flynn</span>
+<span class="c1">#</span>
+<span class="c1"># Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+<span class="c1"># of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+<span class="c1"># in the Software without restriction, including without limitation the rights</span>
+<span class="c1"># to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+<span class="c1"># copies of the Software, and to permit persons to whom the Software is</span>
+<span class="c1"># furnished to do so, subject to the following conditions:</span>
+<span class="c1">#</span>
+<span class="c1"># The above copyright notice and this permission notice shall be included in</span>
+<span class="c1"># all copies or substantial portions of the Software.</span>
+<span class="c1">#</span>
+<span class="c1"># THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+<span class="c1"># IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+<span class="c1"># FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL</span>
+<span class="c1"># THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+<span class="c1"># LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+<span class="c1"># OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN</span>
+<span class="c1"># THE SOFTWARE.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Functions to handle logging for the GRBL device.</span>
+
+<span class="sd">The grbl device logging functions</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">enum</span> <span class="kn">import</span> <span class="n">IntEnum</span>
+
+<span class="kn">from</span> <span class="nn">geometry_msgs.msg</span> <span class="kn">import</span> <span class="n">Pose</span>
+
+
+<div class="viewcode-block" id="logging"><a class="viewcode-back" href="../../logging.html#grbl_ros._logging.logging">[docs]</a><span class="k">class</span> <span class="nc">logging</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Logging class to hold all logging functions for the grbl device class.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">    ----</span>
+<span class="sd">        object: A python object</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="logging.getStatus"><a class="viewcode-back" href="../../logging.html#grbl_ros._logging.logging.getStatus">[docs]</a>    <span class="k">def</span> <span class="nf">getStatus</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the current status of the GRBL device.&quot;&quot;&quot;</span>
+        <span class="c1"># TODO(evanflynn): status should be ROS msg?</span>
+        <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">MODE</span><span class="o">.</span><span class="n">NORMAL</span><span class="p">):</span>
+            <span class="c1"># ? returns the active GRBL state &amp; current machine and work positions</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="s1">&#39;?&#39;</span><span class="p">)</span>
+        <span class="k">elif</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">MODE</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">):</span>
+            <span class="k">return</span> <span class="s1">&#39;DEBUG GRBL device is happy!&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;UNDEFINED GRBL MODE&#39;</span></div>
+
+<div class="viewcode-block" id="logging.getSettings"><a class="viewcode-back" href="../../logging.html#grbl_ros._logging.logging.getSettings">[docs]</a>    <span class="k">def</span> <span class="nf">getSettings</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the current settings of the GRBL device.&quot;&quot;&quot;</span>
+        <span class="c1"># TODO(evanflynn): status should be ROS msg?</span>
+        <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">MODE</span><span class="o">.</span><span class="n">NORMAL</span><span class="p">):</span>
+            <span class="c1"># ? returns the active GRBL state &amp; current machine and work positions</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="s1">&#39;$$&#39;</span><span class="p">)</span>
+        <span class="k">elif</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">MODE</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">):</span>
+            <span class="k">return</span> <span class="s1">&#39;DEBUG GRBL device is happy!&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;UNDEFINED GRBL MODE&#39;</span></div>
+
+<div class="viewcode-block" id="logging.getPose"><a class="viewcode-back" href="../../logging.html#grbl_ros._logging.logging.getPose">[docs]</a>    <span class="k">def</span> <span class="nf">getPose</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the last Pose recorded of the GRBL device.&quot;&quot;&quot;</span>
+        <span class="n">pose</span> <span class="o">=</span> <span class="n">Pose</span><span class="p">()</span>
+        <span class="n">pose</span><span class="o">.</span><span class="n">position</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pos</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">pose</span><span class="o">.</span><span class="n">position</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pos</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">pose</span><span class="o">.</span><span class="n">position</span><span class="o">.</span><span class="n">z</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pos</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+        <span class="c1"># this parameters are set to 0</span>
+        <span class="c1"># the cnc its a XYZ 3 DOF mechanism and doesnt need it</span>
+        <span class="c1"># TODO(evanflynn): could be useful for higher DOF machines?</span>
+        <span class="n">pose</span><span class="o">.</span><span class="n">orientation</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">angular</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">pose</span><span class="o">.</span><span class="n">orientation</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">angular</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">pose</span><span class="o">.</span><span class="n">orientation</span><span class="o">.</span><span class="n">z</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">angular</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+        <span class="n">pose</span><span class="o">.</span><span class="n">orientation</span><span class="o">.</span><span class="n">w</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">angular</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">pose</span></div>
+
+    <span class="k">def</span> <span class="nf">decodeStatus</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">status</span><span class="p">):</span>
+        <span class="k">if</span><span class="p">(</span><span class="s1">&#39;error&#39;</span> <span class="ow">in</span> <span class="n">status</span><span class="p">):</span>
+            <span class="n">err</span> <span class="o">=</span> <span class="n">status</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">if</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">err</span><span class="p">)</span> <span class="o">==</span> <span class="nb">int</span><span class="p">()):</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">STATUS</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">status</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">1</span><span class="p">]))</span><span class="o">.</span><span class="n">name</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">err</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">status</span>
+
+<div class="viewcode-block" id="logging.MODE"><a class="viewcode-back" href="../../logging.html#grbl_ros._logging.logging.MODE">[docs]</a>    <span class="k">class</span> <span class="nc">MODE</span><span class="p">(</span><span class="n">IntEnum</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Operation modes of the GRBL device, helpful for debugging.&quot;&quot;&quot;</span>
+
+        <span class="n">NORMAL</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">DEBUG</span> <span class="o">=</span> <span class="mi">1</span></div>
+
+<div class="viewcode-block" id="logging.STATE"><a class="viewcode-back" href="../../logging.html#grbl_ros._logging.logging.STATE">[docs]</a>    <span class="k">class</span> <span class="nc">STATE</span><span class="p">(</span><span class="n">IntEnum</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Operation states of the GRBL device.&quot;&quot;&quot;</span>
+
+        <span class="n">IDLE</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">RUN</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">HOLD</span> <span class="o">=</span> <span class="mi">2</span>
+        <span class="n">JOG</span> <span class="o">=</span> <span class="mi">3</span>
+        <span class="n">ALARM</span> <span class="o">=</span> <span class="mi">4</span>
+        <span class="n">DOOR</span> <span class="o">=</span> <span class="mi">5</span>
+        <span class="n">CHECK</span> <span class="o">=</span> <span class="mi">6</span>
+        <span class="n">HOME</span> <span class="o">=</span> <span class="mi">7</span>
+        <span class="n">SLEEP</span> <span class="o">=</span> <span class="mi">8</span></div>
+
+<div class="viewcode-block" id="logging.STATUS"><a class="viewcode-back" href="../../logging.html#grbl_ros._logging.logging.STATUS">[docs]</a>    <span class="k">class</span> <span class="nc">STATUS</span><span class="p">(</span><span class="n">IntEnum</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Official GRBL error list.</span>
+
+<span class="sd">        http://domoticx.com/cnc-machine-grbl-error-list/</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">NO_ERROR</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">MISSING_LETTER</span> <span class="o">=</span> <span class="mi">1</span>  <span class="c1"># G-code words consist of a letter and a value. Letter not found</span>
+        <span class="n">INVALID_NUMERIC</span> <span class="o">=</span> <span class="mi">2</span>  <span class="c1"># Numeric value format is not valid or missing an expected value</span>
+        <span class="n">COMMAND_NOT_SUPPORTED</span> <span class="o">=</span> <span class="mi">3</span>  <span class="c1"># Grbl &#39;$&#39; system command was not recognized or supported</span>
+        <span class="n">NEGATIVE_POSITION</span> <span class="o">=</span> <span class="mi">4</span>  <span class="c1"># Negtaive value received for an expected positive value</span>
+        <span class="n">DISABLED_HOMING</span> <span class="o">=</span> <span class="mi">5</span>  <span class="c1"># Homing cycle is not enabled via settings</span>
+        <span class="n">MIN_STEP_TOO_SMALL</span> <span class="o">=</span> <span class="mi">6</span>  <span class="c1"># must be larger than 3usec</span>
+        <span class="n">EEPROM_READ_FAIL</span> <span class="o">=</span> <span class="mi">7</span>  <span class="c1"># EEPROM read failed. Reset and restored to default values</span>
+        <span class="n">GRBL_NOT_IDLE</span> <span class="o">=</span> <span class="mi">8</span>  <span class="c1"># Grbl &#39;$&#39; cmd cannot be used unless Grbl is IDLE</span>
+        <span class="n">LOCKED_OUT</span> <span class="o">=</span> <span class="mi">9</span>  <span class="c1"># G-code locked out during alarm or jog state</span>
+        <span class="n">HOMING_NOT_ENABLED</span> <span class="o">=</span> <span class="mi">10</span>  <span class="c1"># Soft limits cannot be enabled without homing also enabled</span>
+        <span class="n">MAX_CHARS_PER_LINE</span> <span class="o">=</span> <span class="mi">11</span>  <span class="c1">#</span></div></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">grbl_ros</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../init.html">__init__</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../command.html">_command</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../control.html">_control</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../configure.html">_configure</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../logging.html">_logging</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.4.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
