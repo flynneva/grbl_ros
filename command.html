@@ -1,0 +1,176 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>_command &#8212; grbl_ros 0.0.15 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="_control" href="control.html" />
+    <link rel="prev" title="__init__" href="init.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="module-grbl_ros._command">
+<span id="command"></span><h1>_command<a class="headerlink" href="#module-grbl_ros._command" title="Permalink to this headline">¶</a></h1>
+<p>Functions to command the GRBL device.</p>
+<p>The grbl device command functions</p>
+<dl class="class">
+<dt id="grbl_ros._command.command">
+<em class="property">class </em><code class="sig-prename descclassname">grbl_ros._command.</code><code class="sig-name descname">command</code><a class="reference internal" href="_modules/grbl_ros/_command.html#command"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grbl_ros._command.command" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes the base grbl device class.</p>
+<blockquote>
+<div><p>node: A ROS2 node that the grbl device should be a child of</p>
+</div></blockquote>
+<dl class="method">
+<dt id="grbl_ros._command.command.send">
+<code class="sig-name descname">send</code><span class="sig-paren">(</span><em class="sig-param">gcode</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/grbl_ros/_command.html#command.send"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grbl_ros._command.command.send" title="Permalink to this definition">¶</a></dt>
+<dd><p>Send some specified GCODE to the GRBL machine.</p>
+<blockquote>
+<div><p>gcode (str): GCODE string to send</p>
+</div></blockquote>
+<blockquote>
+<div><p>str: response of GRBL device to GCODE</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="grbl_ros._command.command.shutdown">
+<code class="sig-name descname">shutdown</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/grbl_ros/_command.html#command.shutdown"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grbl_ros._command.command.shutdown" title="Permalink to this definition">¶</a></dt>
+<dd><p>Shutdown the GRBL machine.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="grbl_ros._command.command.startup">
+<code class="sig-name descname">startup</code><span class="sig-paren">(</span><em class="sig-param">machine_id</em>, <em class="sig-param">port</em>, <em class="sig-param">baud</em>, <em class="sig-param">acc</em>, <em class="sig-param">maxx</em>, <em class="sig-param">maxy</em>, <em class="sig-param">maxz</em>, <em class="sig-param">spdf</em>, <em class="sig-param">spdx</em>, <em class="sig-param">spdy</em>, <em class="sig-param">spdz</em>, <em class="sig-param">stepsx</em>, <em class="sig-param">stepsy</em>, <em class="sig-param">stepsz</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/grbl_ros/_command.html#command.startup"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grbl_ros._command.command.startup" title="Permalink to this definition">¶</a></dt>
+<dd><p>Startup the GRBL machine with the specified parameters.</p>
+<blockquote>
+<div><p>self (obj): the grbl object
+machine_id (str): the name of the machine
+port (str): the serial port that connects to the grbl device
+baud (int): the baud rate to use for serial communication with the grbl device
+acc (int): the grbl device axis acceleration (mm/s^2)
+maxx (int): workable travel of the grbl device for its x axis (mm)
+maxy (int): workable travel of the grbl device for its y axis (mm)
+maxz (int): workable travel of the grbl device for tts z axis (mm)
+spdf (int): default speed of the grbl device (mm/min)
+spdx (int): maximum speed for x axis (mm/min)
+spdy (int): maximum speed for y axis (mm/min)
+spdz (int): maximum speed for z axis (mm/min)
+stepsx (int): number of steps per mm for x axis (steps)
+stepsy (int): number of steps per mm for y axis (steps)
+stepsz (int): number of steps per mm for z axis (steps)</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="grbl_ros._command.command.stream">
+<code class="sig-name descname">stream</code><span class="sig-paren">(</span><em class="sig-param">fpath</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/grbl_ros/_command.html#command.stream"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#grbl_ros._command.command.stream" title="Permalink to this definition">¶</a></dt>
+<dd><p>Send an entire file of GCODE commands to the GRBL machine.</p>
+<blockquote>
+<div><p>fpath (str): filepath to GCODE (.nc, .gcode) file to send</p>
+</div></blockquote>
+<blockquote>
+<div><p>str: status of sending the file</p>
+</div></blockquote>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">grbl_ros</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="init.html">__init__</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">_command</a></li>
+<li class="toctree-l1"><a class="reference internal" href="control.html">_control</a></li>
+<li class="toctree-l1"><a class="reference internal" href="configure.html">_configure</a></li>
+<li class="toctree-l1"><a class="reference internal" href="logging.html">_logging</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="init.html" title="previous chapter">__init__</a></li>
+      <li>Next: <a href="control.html" title="next chapter">_control</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.4.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/command.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
