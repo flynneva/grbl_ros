@@ -10,6 +10,11 @@ jobs:
     steps:
     - name: checkout
       uses: actions/checkout@v2
+    - name: setup ROS environment
+      uses: flynneva/setup-ros@enable_ros2_testing
+      with:
+        use-ros2-testing: true
+        required-ros-distributions: rolling
     - name: build documentation
       uses: ammaraskar/sphinx-action@master
       with:
