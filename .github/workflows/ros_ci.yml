@@ -43,13 +43,13 @@ jobs:
         uses: actions/checkout@v2
         with:
           path: ros_ws/src
-      - name: install dependencies
-        run: "pip3 install -r requirements.txt"
       - name: setup ROS environment
         uses: flynneva/setup-ros@enable_ros2_testing
         with:
           use-ros2-testing: true
           required-ros-distributions: ${{ matrix.ros_distribution }}
+      - name: install dependencies
+        run: "pip3 install -r requirements.txt"
       - name: build and test
         uses: ros-tooling/action-ros-ci@0.0.19
         with:
