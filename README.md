@@ -17,6 +17,15 @@ All Tier 1 platforms | [Rolling Ridley](https://index.ros.org/doc/ros2/Releases/
 
 Dashing and Eloquent target Ubuntu 18.04 while Foxy and Rolling target Ubuntu 20.04.
 
+## How to use
+The grbl_ros package exposes two major functionalities to ROS: pose tracking and sending commands to the GRBL device.
+
+This package publishes a tf to the most recent machine coordinates received from the GRBL device. This allows for other ROS nodes to "know" where the machine is which can help enable many different functions.
+
+Secondly this package runs two ROS2 actions: `send_gcode_cmd` and `send_gcode_file`. Both actions do what they say they do and enable the user to monitor the status of these actions as they happen.
+
+All of the ROS2 functionality is kept within the `device.py` file with the goal of being able to use the other GRBL serial functions without ROS2 in case someone wants to.
+
 ## Getting started
 
 Quick start:

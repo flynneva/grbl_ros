@@ -25,14 +25,7 @@ The grbl device configure functions
 
 
 class configure(object):
-    """
-    Configure class to hold all configure functions for the grbl device class.
-
-    Args:
-    ----
-        object: A python object
-
-    """
+    """Configure class to hold all configure functions for the grbl device class."""
 
     def setSpeed(self, speed):
         self.defaultSpeed = speed

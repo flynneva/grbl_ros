@@ -29,14 +29,7 @@ from geometry_msgs.msg import Pose
 
 
 class logging(object):
-    """
-    Logging class to hold all logging functions for the grbl device class.
-
-    Args:
-    ----
-        object: A python object
-
-    """
+    """Logging class to hold all logging functions for the grbl device class."""
 
     def getStatus(self):
         """Get the current status of the GRBL device."""

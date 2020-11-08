@@ -38,6 +38,14 @@ from tf2_ros.transform_broadcaster import TransformBroadcaster
 
 
 class grbl_node(Node):
+    """
+    A ROS2 node representing a single GRBL device.
+
+    This nodes main function is to publish the real-time pose of the GRBL device as
+    a ROS2 transform (tf).  Additionally it enables the ROS2 user to send GCODE commands
+    and files to the GRBL device and monitor its status.
+
+    """
 
     def __init__(self):
         # TODO(evanflynn): init node with machine_id param input or arg
@@ -150,6 +158,12 @@ class grbl_node(Node):
         return response
 
     def gcodeCallback(self, goal_handle):
+        """
+        Send GCODE ROS2 action callback.
+
+        This is the callback called each time the ROS2 send_gcode_cmd action is called.
+
+        """
         result = SendGcodeCmd.Result()
         status = self.machine.send(str(goal_handle.request.command))
         if(status.find('error') > -1):
@@ -183,6 +197,13 @@ class grbl_node(Node):
         return result
 
     def streamCallback(self, goal_handle):
+        """
+        Send GCODE file ROS2 action callback.
+
+        This is the callback called each time the ROS2 send_gcode_file action is called
+        and calls the send_gcode_cmd action for each line in the given file.
+
+        """
         result = SendGcodeFile.Result()
         # open file to read each line
         f = open(goal_handle.request.file_path, 'r')
@@ -218,6 +239,13 @@ class grbl_node(Node):
         return result
 
     def file_feedback(self, feedback):
+        """
+        Feedback function during the send_gcode_file ROS2 aciton.
+
+        This feedback callback can be called during the send_gcode_file in order to provide
+        feedback to the user as the ROS2 action is executed.
+
+        """
         # self.get_logger().info('received feedback')
         return
 

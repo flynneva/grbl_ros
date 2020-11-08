@@ -25,14 +25,7 @@ The grbl device control functions
 
 
 class control(object):
-    """
-    Control class to hold all control functions for the grbl device class.
-
-    Args:
-    ----
-        object: A python object
-
-    """
+    """Control class to hold all control functions for the grbl device class."""
 
     def home(self):
         """Home the GRBL device."""

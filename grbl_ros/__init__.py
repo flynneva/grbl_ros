@@ -39,14 +39,7 @@ from ._logging import logging
 
 
 class grbl(control, command, configure, logging):
-    """
-    Initializes the base grbl device class.
-
-    Args:
-    ----
-       node (Node): A ROS2 node that the grbl device should be a child of
-
-    """
+    """Initializes the base grbl device class."""
 
     def __init__(self, node):
         self.mode = self.MODE.NORMAL
