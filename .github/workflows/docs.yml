@@ -19,7 +19,7 @@ jobs:
       uses: ammaraskar/sphinx-action@master
       with:
         docs-folder: "docs/"
-        pre-build-command: "apt-get update -y && pip3 install -r requirements.txt && pip3 install sphinxcontrib-napoleon"
+        pre-build-command: "apt-get update -y && pip3 install -r requirements.txt && pip3 install sphinxcontrib-napoleon && source /opt/ros/rolling/setup.bash"
         build-command: "make html"
     - name: deploy
       uses: peaceiris/actions-gh-pages@v3
