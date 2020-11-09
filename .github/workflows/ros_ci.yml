@@ -44,8 +44,9 @@ jobs:
         with:
           path: ros_ws/src
       - name: setup ROS environment
-        uses: flynneva/setup-ros@enable_ros2_testing
+        uses: flynneva/setup-ros@optional_connext
         with:
+          include-connext: false
           use-ros2-testing: true
           required-ros-distributions: ${{ matrix.ros_distribution }}
       - name: install dependencies
