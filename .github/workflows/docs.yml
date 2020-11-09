@@ -24,7 +24,7 @@ jobs:
       with:
         docs-folder: "docs/"
         pre-build-command: "apt-get update -y && cd ros_ws/src && pip3 install -r requirements.txt && pip3 install sphinxcontrib-napoleon"
-        build-command: '"source ~/setup.bash" && make html'
+        build-command: '"source ~/setup.bash" && cd ros_ws/src && make html'
     - name: deploy
       uses: peaceiris/actions-gh-pages@v3
       with:
