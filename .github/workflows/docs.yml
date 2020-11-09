@@ -21,6 +21,14 @@ jobs:
         required-ros-distributions: rolling
     - name: print HOME
       run: ls ~/
+    - name: print /opt
+      run: ls /opt
+    - name: print ~/runners/
+      run: ls ~/runners/
+    - name: print grbl_ros
+      run: ls ~/ros_ws/src/grbl_ros/
+    - name: print work
+      run: ls ~/work
     - name: build documentation
       uses: ammaraskar/sphinx-action@master
       with:
