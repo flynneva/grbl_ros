@@ -8,23 +8,25 @@ jobs:
   generate_docs:
     runs-on: ubuntu-20.04
     steps:
+    - name: setup directories
+      run: mkdir -p ros_ws/src
     - name: checkout
       uses: actions/checkout@v2
+      with:
+        path: ros_ws/src
     - name: setup ROS environment
       uses: flynneva/setup-ros@enable_ros2_testing
       with:
         use-ros2-testing: true
         required-ros-distributions: rolling
-    - name: see if ros was installed
-      run: "ls && ls /opt/ros/rolling/"
     - name: build documentation
       uses: ammaraskar/sphinx-action@master
       with:
         docs-folder: "docs/"
-        pre-build-command: "apt-get update -y && pip3 install -r requirements.txt && pip3 install sphinxcontrib-napoleon"
-        build-command: '"source /opt/ros/rolling/setup.sh" && make html'
+        pre-build-command: "apt-get update -y && cd ros_ws/src && pip3 install -r requirements.txt && pip3 install sphinxcontrib-napoleon"
+        build-command: '"source ~/setup.bash" && make html'
     - name: deploy
       uses: peaceiris/actions-gh-pages@v3
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./docs/_build/html/
+        publish_dir: ~/ros_ws/src/docs/_build/html/
