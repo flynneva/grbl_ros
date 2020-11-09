@@ -15,12 +15,14 @@ jobs:
       with:
         use-ros2-testing: true
         required-ros-distributions: rolling
+    - name: see if ros was installed
+      run: "ls && ls /opt/ros/rolling/"
     - name: build documentation
       uses: ammaraskar/sphinx-action@master
       with:
         docs-folder: "docs/"
         pre-build-command: "apt-get update -y && pip3 install -r requirements.txt && pip3 install sphinxcontrib-napoleon"
-        build-command: '"ls /opt/ros/rolling" && "source /opt/ros/rolling/setup.sh" && make html'
+        build-command: '"source /opt/ros/rolling/setup.sh" && make html'
     - name: deploy
       uses: peaceiris/actions-gh-pages@v3
       with:
