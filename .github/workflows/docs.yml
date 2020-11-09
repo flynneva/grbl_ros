@@ -9,22 +9,24 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
     - name: setup directories
-      run: mkdir -p ros_ws/src/grbl_ros
+      run: mkdir -p ~/ros_ws/src/grbl_ros
     - name: checkout
       uses: actions/checkout@v2
       with:
-        path: ros_ws/src/grbl_ros
+        path: ~/ros_ws/src/grbl_ros
     - name: setup ROS environment
       uses: flynneva/setup-ros@enable_ros2_testing
       with:
         use-ros2-testing: true
         required-ros-distributions: rolling
+    - name: print HOME
+      run: ls ~/
     - name: build documentation
       uses: ammaraskar/sphinx-action@master
       with:
-        docs-folder: "ros_ws/src/grbl_ros/docs/"
-        pre-build-command: "apt-get update -y && pip3 install -r ros_ws/src/grbl_ros/requirements.txt && pip3 install sphinxcontrib-napoleon"
-        build-command: '"source ../../../../setup.bash" && "make html"'
+        docs-folder: "~/ros_ws/src/grbl_ros/docs/"
+        pre-build-command: "apt-get update -y && pip3 install -r ~/ros_ws/src/grbl_ros/requirements.txt && pip3 install sphinxcontrib-napoleon"
+        build-command: '"source ${HOME}/setup.bash" && "make html"'
     - name: deploy
       uses: peaceiris/actions-gh-pages@v3
       with:
