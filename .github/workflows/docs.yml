@@ -15,20 +15,12 @@ jobs:
       with:
         path: ~/ros_ws/src/grbl_ros
     - name: setup ROS environment
-      uses: flynneva/setup-ros@enable_ros2_testing
+      uses: flynneva/setup-ros@optional_connext
       with:
         use-ros2-testing: true
         required-ros-distributions: rolling
-    - name: print HOME
-      run: ls ~/
-    - name: print /opt
-      run: ls /opt
-    - name: print ~/runners/
-      run: ls ~/runners/
-    - name: print grbl_ros
-      run: ls ~/ros_ws/src/grbl_ros/
-    - name: print work
-      run: ls ~/work
+    - name: print /opt/ros
+      run: ls /opt/ros/ && ls /opt/ros/rolling/
     - name: build documentation
       uses: ammaraskar/sphinx-action@master
       with:
