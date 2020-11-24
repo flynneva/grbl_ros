@@ -25,7 +25,7 @@ except ImportError:
 def test_flake8():
     try:
         rc = main(argv=[])
-        assert rc == 0, 'Found errros'
+        assert rc == 0, 'Found errors'
     except NameError:
         rc, errors = main_with_errors(argv=[])
         assert rc == 0, \
