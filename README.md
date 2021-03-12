@@ -38,6 +38,26 @@ Once cloned, you can now build your workspace by running the following from your
 colcon build
 ```
 
+Once built, just make sure you've sourced your overlay (`source /path/to/workspace/install/setup.bash`) and you should be able to start up the `grbl_ros` node:
+
+```
+ros2 run grbl_ros grbl_node --ros-args --params-file /path/to/workspace/src/grbl_ros/config/cnc001.yaml
+```
+
+Before you can command your GRBL device to move, most likely you'll need to unlock it using the `$X` command:
+```
+ros2 action send_goal /cnc_001/send_gcode_cmd grbl_msgs/action/SendGcodeCmd '{command: $X}'
+```
+
+You should see `Goal finished with status: SUCCEEDED` and a print-out in the `grbl_ros` terminal that the GRBL device is now unlocked.
+
+From here, you can send your device whatever GCODE commands you would like. Here are a few common ones to get you started:
+```
+ros2 action send_goal /cnc_001/send_gcode_cmd grbl_msgs/action/SendGcodeCmd '{command: X1.0}'
+# TBD, recommend more if you'd like more to be listed here!
+```
+
+
 ## Testing
 Unit tests are run on every PR and every release across every supported platform for each ROS2 release. Refer to [the "actions" tab for this repository](https://github.com/flynneva/grbl_ros/actions?query=workflow%3A%22ROS+2+CI%22) to see these tests yourself.
 

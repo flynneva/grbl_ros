@@ -1,4 +1,4 @@
-cnc_001:
+/**:
   ros__parameters:
     machine_id: cnc_001
     port: /dev/ttyUSB0
