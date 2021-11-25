@@ -55,20 +55,20 @@ class grbl_node(Node):
         self.declare_parameters(
             namespace='',
             parameters=[
-                ('machine_id', None),
-                ('port', None),
-                ('baudrate', None),
-                ('acceleration', None),  # mm / min^2
-                ('x_max', None),  # mm
-                ('y_max', None),  # mm
-                ('z_max', None),  # mm
-                ('default_v', None),  # mm / min
-                ('x_max_v', None),  # mm / min
-                ('y_max_v', None),  # mm / min
-                ('z_max_v', None),  # mm / min
-                ('x_steps', None),  # mm
-                ('y_steps', None),  # mm
-                ('z_steps', None),  # mm
+                ('machine_id', 'cnc_001'),
+                ('port', '/dev/ttyUSB0'),
+                ('baudrate', 115200),
+                ('acceleration', 50),  # mm / min^2
+                ('x_max', 300),  # mm
+                ('y_max', 200),  # mm
+                ('z_max', 150),  # mm
+                ('default_v', 100),  # mm / min
+                ('x_max_v', 150),  # mm / min
+                ('y_max_v', 150),  # mm / min
+                ('z_max_v', 150),  # mm / min
+                ('x_steps', 100),  # mm
+                ('y_steps', 100),  # mm
+                ('z_steps', 100),  # mm
             ])
 
         self.machine_id = self.get_parameter('machine_id').get_parameter_value().string_value
@@ -145,10 +145,13 @@ class grbl_node(Node):
                                    'on serial port ' + self.machine.port)
             self.get_logger().warn('Are you sure the GRBL device '
                                    'is connected and powered on?')
+            self.get_logger().warn('[ TIP ] Change the serial port and machine ID parameters')
+            self.get_logger().warn('[ TIP ] in the `grbl_ros/config` yaml file and use it at run-time:')
+            self.get_logger().warn('[ TIP ]   ros2 run grbl_ros grbl_node --ros-args --params-file <path/to/config>.yaml')
             # TODO(evanflynn): set this to a different color so it stands out?
             self.get_logger().info('Node running in `debug` mode')
             self.get_logger().info('GRBL device operation may not function as expected')
-            self.machine.mode = self.grbl_obj.MODE.DEBUG
+            self.machine.mode = self.machine.MODE.DEBUG
 
     def poseCallback(self, request, response):
         self.machine.moveTo(request.position.x,
