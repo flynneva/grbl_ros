@@ -54,14 +54,9 @@ def main():
     while rclpy.ok():
         rclpy.spin_once(manager_node)
         if manager_node.future.done():
-            try:
-                response = manager_node.future.result()
-            except Exception as e:
-                manager_node.get_logger().info(
-                    'Service call failed %r' % (e, ))
-        else:
-            manager_node.get_logger().info(
-                'Result of create_device: ' + response.success)
+            response = manager_node.future.result()
+        manager_node.get_logger().info(
+            'Result of create_device: ' + response.success)
         break
 
     manager_node.destroy_node()

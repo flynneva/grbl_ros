@@ -163,8 +163,10 @@ class command(object):
             # publish status
             self.node.pub_state_.publish(state_msg)
         except IndexError:
-            self.node.get_logger().warn('Received status from machine does not have required fields')
-            self.node.get_logger().warn('Status should always include machine state and current position')
+            self.node.get_logger().warn(
+                'Received status from machine does not have required fields')
+            self.node.get_logger().warn(
+                'Status should always include machine state and current position')
             self.node.get_logger().warn('Received: %s'.format(status))
 
     def handle_current_pose(self, pose):

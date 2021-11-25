@@ -145,9 +145,13 @@ class grbl_node(Node):
                                    'on serial port ' + self.machine.port)
             self.get_logger().warn('Are you sure the GRBL device '
                                    'is connected and powered on?')
-            self.get_logger().warn('[ TIP ] Change the serial port and machine ID parameters')
-            self.get_logger().warn('[ TIP ] in the `grbl_ros/config` yaml file and use it at run-time:')
-            self.get_logger().warn('[ TIP ]   ros2 run grbl_ros grbl_node --ros-args --params-file <path/to/config>.yaml')
+            self.get_logger().warn(
+                '[ TIP ] Change the serial port and machine ID parameters')
+            self.get_logger().warn(
+                '[ TIP ] in the `grbl_ros/config` yaml file and use it at run-time:')
+            self.get_logger().warn(
+                '[ TIP ]   ros2 run grbl_ros grbl_node '
+                '--ros-args --params-file <path/to/config>.yaml')
             # TODO(evanflynn): set this to a different color so it stands out?
             self.get_logger().info('Node running in `debug` mode')
             self.get_logger().info('GRBL device operation may not function as expected')
