@@ -143,24 +143,29 @@ class command(object):
                 self.parse_status(line)
 
     def parse_status(self, status):
-        # seperate fields using pipe delimeter |
-        fields = status.split('|')
-        # clean first and last field of '<>'
-        fields[0] = fields[0][1:]
-        last_field = len(fields) - 1
-        fields[last_field] = fields[last_field][:-1]
-        # for f in fields:
-        #    self.node.get_logger().info(str(f))
-        # followed grbl message construction docs
-        # https://github.com/gnea/grbl/wiki/Grbl-v1.1-Interface#grbl-response-messages
-        # The first (Machine State) and second (Current Position) data fields
-        # are always included in every report.
-        # handle machine state
-        state_msg = self.handle_state(fields[0])
-        # parse current position
-        self.handle_current_pose(fields[1])
-        # publish status
-        self.node.pub_state_.publish(state_msg)
+        try:
+            # seperate fields using pipe delimeter |
+            fields = status.split('|')
+            # clean first and last field of '<>'
+            fields[0] = fields[0][1:]
+            last_field = len(fields) - 1
+            fields[last_field] = fields[last_field][:-1]
+            # for f in fields:
+            #    self.node.get_logger().info(str(f))
+            # followed grbl message construction docs
+            # https://github.com/gnea/grbl/wiki/Grbl-v1.1-Interface#grbl-response-messages
+            # The first (Machine State) and second (Current Position) data fields
+            # are always included in every report.
+            # handle machine state
+            state_msg = self.handle_state(fields[0])
+            # parse current position
+            self.handle_current_pose(fields[1])
+            # publish status
+            self.node.pub_state_.publish(state_msg)
+        except IndexError:
+            self.node.get_logger().warn('Received status from machine does not have required fields')
+            self.node.get_logger().warn('Status should always include machine state and current position')
+            self.node.get_logger().warn('Received: %s'.format(status))
 
     def handle_current_pose(self, pose):
         transforms = []
