@@ -2,9 +2,78 @@
 Changelog for package grbl_ros
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.0.16 (2021-11-27)
+-------------------
+* fix changelog tags that were missing dates
+* bump version in prep for release
+* Merge pull request `#111 <https://github.com/flynneva/grbl_ros/issues/111>`_ from flynneva/fix/default-params-and-grbl-obj-err
+  Fix/default params and grbl obj err
+* fix flake8 errors
+* [110] add warning about missing fields in status
+* set defaults for parameters, fix grbl_obj error
+* add more info to quickstart README
+* fixed typo
+* bump ros action
+* still trying to fix docs
+* docs source ros
+* ls ros in docs build
+* remove HOME env var
+* add a bunch of prints
+* docs still not sourcing ros
+* ugly source filepath
+* source ros from opt
+* full path source
+* fix fpath for docs
+* one more try for the docs
+* dont include connext
+* cd to source code before building docs
+* test including connext
+* forgot quotes
+* test for optional connext ci
+* forgot one cd
+* change gh action directories
+* debugging sourcing ros
+* ls opt ros path to debug
+* sh not bash
+* try another way to source ros
+* update README
+* source ros with make docs cmd
+* source ros before building docs
+* update os for docs action
+* add ros setup action to docs action
+* fixed flake8 errors
+* more doc updates
+* more updates to docs
+* update doc structure, add gitignore
+* removed pytest from requirements.txt
+* remove ros pkgs from requirements
+* one more time
+* filepath to requirements
+* trying to fix filepath
+* add filepath for requirements
+* move dependencies install after ros env setup
+* fixed yml typo
+* add requirements.txt file
+* switched back to ammaraskar sphinx action
+* trying to update docs action
+* hopefully final pep257 fix
+* more pep257 fixes
+* fixed pep257 errors
+* Merge pull request `#75 <https://github.com/flynneva/grbl_ros/issues/75>`_ from flynneva/improve_docs
+  fix flake8 errors
+* fix flake8 errors
+* Merge pull request `#73 <https://github.com/flynneva/grbl_ros/issues/73>`_ from flynneva/improve_docs
+  Improve docs
+* slowly improve docs
+* remove blank line in package.xml
+* bumped docs version
+* forgot to bump setup.py
+* Contributors: Evan Flynn, flynneva
 
-0.0.15
------------
+0.0.15 (2020-10-22)
+-------------------
+* updated changelog spacing
+* update changelog
 * add extra line
 * removed whitespace
 * removed env var in test completely
@@ -20,69 +89,56 @@ Changelog for package grbl_ros
 * add back in docs folder
 * add mkdir docs
 * prepare release
-* Contributors: Evan Flynn
+* Contributors: Evan Flynn, flynneva
 
-
-0.0.14
------------
-* separated methods to semantic file name
-* Delete dashing-release.yml
-* Update dashing-release.yml
-* Update dashing-release.yml
-* Update foxy-release-candidate.yml
-* Update eloquent-release-candidate.yml
-* Update dashing-release-candidate.yml
-* Update dashing-release.yml
-* Update and rename release.yml to dashing-release.yml
-* Create foxy-release-candidate.yml
-* Create eloquent-release-candidate.yml
-* Merge pull request `#21 <https://github.com/flynneva/grbl_ros/issues/21>`_ from flynneva/devel
-  specify distro in issue body
-* specify distro in issue body
-* Merge pull request `#18 <https://github.com/flynneva/grbl_ros/issues/18>`_ from flynneva/devel
-  changed checkout branch name
-* changed checkout branch name
-* Merge pull request `#16 <https://github.com/flynneva/grbl_ros/issues/16>`_ from flynneva/devel
-  renamed and specified branch to checkout
-* renamed and specified branch to checkout
-* Merge pull request `#14 <https://github.com/flynneva/grbl_ros/issues/14>`_ from flynneva/devel
-  create dashing release candidate
-* create dashing release candidate
-* Update greetings.yml
-* Merge pull request `#12 <https://github.com/flynneva/grbl_ros/issues/12>`_ from flynneva/devel
-  vcs-repo-file-url param
-* rolling not valid for this setup-ros release
-  wait to switch to rolling until next setup-ros release
-* run on rolling for main/devel
-* remove mac from action
-* switched to mac os and back to ros-tooling wg
-* removed mac from matrix
-* accidentally put uses on wrong step
-* test action-ros-ci that sources ROS for windows
-* test windows fix for ci
-* vcs-repo-file-url param
-* Merge pull request `#11 <https://github.com/flynneva/grbl_ros/issues/11>`_ from flynneva/devel
-  Devel
-* removed vcs-repo-file-url param
-* bump action-ros-ci & add vcs repo url
-* package should not be in matrix
-* Merge pull request `#10 <https://github.com/flynneva/grbl_ros/issues/10>`_ from flynneva/devel
-  added ros source binary for distro
-* bumped ros ci to 0.0.18
-* regressed to ros ci 0.0.15
-* specify target distro
-* specify target distro
-* added ros source binary for distro
-* Merge pull request `#9 <https://github.com/flynneva/grbl_ros/issues/9>`_ from flynneva/devel
-  update readme and add release actions
-* Merge pull request `#8 <https://github.com/flynneva/grbl_ros/issues/8>`_ from flynneva/update_readme
-  Update readme & add release actions
-* added release actions
-* added testing section
-* forgot to add ubuntu
-* update readme
-* Contributors: Evan Flynn
-
+0.0.14 (2020-10-21)
+-------------------
+* update changelog
+* update status badges
+* update changelog
+* remove docs
+* bump version
+* Merge branch 'main' into devel
+* fixed version and removed tags
+* Merge pull request `#61 <https://github.com/flynneva/grbl_ros/issues/61>`_ from flynneva/devel
+  add back in ci for all ros distros
+* fixed pep257
+* switch to custom setup-ros branch
+* fixed flake8 errors
+* flake8 backwards compatability
+* fixed package.xml depends
+* added release actions and fixed flake8 tests
+* added all ros2 versions back to ci
+* Merge pull request `#58 <https://github.com/flynneva/grbl_ros/issues/58>`_ from flynneva/mixin_refactor
+  refactored into mixin classes
+* flake8 fixes
+* reduced period per line send
+* send file functioning
+* send gcode cmd action functional
+* functioning pose and tf pubs
+* refactored into mixin classes
+* progress
+* beginning to parse status response
+* added some more console prints
+* flake8 errors
+* progress
+* still just getting started
+* fixed some bugs
+* loading in params from yaml file
+* minor upgrades
+* added status, pose and tf publishers
+* cleaned up sending serial data
+* Merge pull request `#53 <https://github.com/flynneva/grbl_ros/issues/53>`_ from flynneva/devel
+  fixed logging error for stream status
+* fixed logging error for stream status
+* Merge pull request `#52 <https://github.com/flynneva/grbl_ros/issues/52>`_ from flynneva/devel
+  added stream gcode function
+* fixed flake8 errors
+* added stream gcode function
+* Merge pull request `#45 <https://github.com/flynneva/grbl_ros/issues/45>`_ from flynneva/devel
+  moved grbl_device.py to _command.py
+* moved grbl_device.py to _command.py
+* Contributors: Evan Flynn, flynneva
 
 0.0.2 (2020-08-05)
 ------------------
