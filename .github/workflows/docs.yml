@@ -17,13 +17,15 @@ jobs:
       with:
         path: ros_ws/src/grbl_ros
     - name: build documentation
-      uses: ammaraskar/sphinx-action@master
-      with:
-        docs-folder: "ros_ws/src/grbl_ros/docs/"
-        pre-build-command: "apt-get update -y && pip3 install -r ros_ws/src/grbl_ros/requirements.txt && pip3 install sphinxcontrib-napoleon"
-        build-command: '"make html"'
+      run: |
+        ls
+        cd ros_ws/src/grbl_ros/docs/
+        apt-get update -y
+        pip3 install sphinx sphinxcontrib-napoleon pyserial
+        . /opt/ros/rolling/setup.sh
+        sphinx-build -b html . ./html/
     - name: deploy
       uses: peaceiris/actions-gh-pages@v3
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ros_ws/src/docs/_build/html/
+        publish_dir: ros_ws/src/grbl_ros/docs/html/
