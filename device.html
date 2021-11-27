@@ -1,17 +1,17 @@
 
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>device &#8212; grbl_ros 0.0.15 documentation</title>
-    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
-    <script src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="__init__" href="init.html" />
@@ -32,8 +32,40 @@
 
           <div class="body" role="main">
             
-  <div class="section" id="device">
-<h1>device<a class="headerlink" href="#device" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="module-grbl_ros.device">
+<span id="device"></span><h1>device<a class="headerlink" href="#module-grbl_ros.device" title="Permalink to this headline">¶</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="grbl_ros.device.grbl_node">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">grbl_ros.device.</span></span><span class="sig-name descname"><span class="pre">grbl_node</span></span><a class="reference internal" href="_modules/grbl_ros/device.html#grbl_node"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#grbl_ros.device.grbl_node" title="Permalink to this definition">¶</a></dt>
+<dd><p>A ROS2 node representing a single GRBL device.</p>
+<p>This nodes main function is to publish the real-time pose of the GRBL device as
+a ROS2 transform (tf).  Additionally it enables the ROS2 user to send GCODE commands
+and files to the GRBL device and monitor its status.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="grbl_ros.device.grbl_node.file_feedback">
+<span class="sig-name descname"><span class="pre">file_feedback</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">feedback</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/grbl_ros/device.html#grbl_node.file_feedback"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#grbl_ros.device.grbl_node.file_feedback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Feedback function during the send_gcode_file ROS2 aciton.</p>
+<p>This feedback callback can be called during the send_gcode_file in order to provide
+feedback to the user as the ROS2 action is executed.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="grbl_ros.device.grbl_node.gcodeCallback">
+<span class="sig-name descname"><span class="pre">gcodeCallback</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">goal_handle</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/grbl_ros/device.html#grbl_node.gcodeCallback"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#grbl_ros.device.grbl_node.gcodeCallback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Send GCODE ROS2 action callback.</p>
+<p>This is the callback called each time the ROS2 send_gcode_cmd action is called.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="grbl_ros.device.grbl_node.streamCallback">
+<span class="sig-name descname"><span class="pre">streamCallback</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">goal_handle</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/grbl_ros/device.html#grbl_node.streamCallback"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#grbl_ros.device.grbl_node.streamCallback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Send GCODE file ROS2 action callback.</p>
+<p>This is the callback called each time the ROS2 send_gcode_file action is called
+and calls the send_gcode_cmd action for each line in the given file.</p>
+</dd></dl>
+
+</dd></dl>
+
 </div>
 
 
@@ -53,7 +85,7 @@
 
 
 <h3>Navigation</h3>
-<p class="caption"><span class="caption-text">Contents:</span></p>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">device</a></li>
 <li class="toctree-l1"><a class="reference internal" href="init.html">__init__</a></li>
@@ -76,7 +108,7 @@
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
       <input type="submit" value="Go" />
     </form>
     </div>
@@ -98,7 +130,7 @@
       &copy;.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.4.4</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.3.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

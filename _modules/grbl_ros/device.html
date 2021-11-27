@@ -1,0 +1,391 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>grbl_ros.device &#8212; grbl_ros 0.0.15 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for grbl_ros.device</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright 2020 Evan Flynn</span>
+<span class="c1">#</span>
+<span class="c1"># Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+<span class="c1"># of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+<span class="c1"># in the Software without restriction, including without limitation the rights</span>
+<span class="c1"># to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+<span class="c1"># copies of the Software, and to permit persons to whom the Software is</span>
+<span class="c1"># furnished to do so, subject to the following conditions:</span>
+<span class="c1">#</span>
+<span class="c1"># The above copyright notice and this permission notice shall be included in</span>
+<span class="c1"># all copies or substantial portions of the Software.</span>
+<span class="c1">#</span>
+<span class="c1"># THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+<span class="c1"># IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+<span class="c1"># FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL</span>
+<span class="c1"># THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+<span class="c1"># LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+<span class="c1"># OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN</span>
+<span class="c1"># THE SOFTWARE.</span>
+<span class="kn">from</span> <span class="nn">threading</span> <span class="k">import</span> <span class="n">Event</span>
+<span class="kn">import</span> <span class="nn">time</span>
+
+<span class="kn">from</span> <span class="nn">geometry_msgs.msg</span> <span class="k">import</span> <span class="n">Pose</span>
+
+<span class="kn">from</span> <span class="nn">grbl_msgs.action</span> <span class="k">import</span> <span class="n">SendGcodeCmd</span><span class="p">,</span> <span class="n">SendGcodeFile</span>
+<span class="kn">from</span> <span class="nn">grbl_msgs.msg</span> <span class="k">import</span> <span class="n">State</span>
+<span class="kn">from</span> <span class="nn">grbl_msgs.srv</span> <span class="k">import</span> <span class="n">Stop</span>
+<span class="kn">from</span> <span class="nn">grbl_ros</span> <span class="k">import</span> <span class="n">grbl</span>
+
+<span class="kn">import</span> <span class="nn">rclpy</span>
+<span class="kn">from</span> <span class="nn">rclpy.action</span> <span class="k">import</span> <span class="n">ActionClient</span><span class="p">,</span> <span class="n">ActionServer</span>
+
+<span class="kn">from</span> <span class="nn">rclpy.callback_groups</span> <span class="k">import</span> <span class="n">ReentrantCallbackGroup</span>
+<span class="kn">from</span> <span class="nn">rclpy.executors</span> <span class="k">import</span> <span class="n">MultiThreadedExecutor</span>
+<span class="kn">from</span> <span class="nn">rclpy.node</span> <span class="k">import</span> <span class="n">Node</span>
+
+<span class="kn">from</span> <span class="nn">tf2_ros.transform_broadcaster</span> <span class="k">import</span> <span class="n">TransformBroadcaster</span>
+
+
+<div class="viewcode-block" id="grbl_node"><a class="viewcode-back" href="../../device.html#grbl_ros.device.grbl_node">[docs]</a><span class="k">class</span> <span class="nc">grbl_node</span><span class="p">(</span><span class="n">Node</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A ROS2 node representing a single GRBL device.</span>
+
+<span class="sd">    This nodes main function is to publish the real-time pose of the GRBL device as</span>
+<span class="sd">    a ROS2 transform (tf).  Additionally it enables the ROS2 user to send GCODE commands</span>
+<span class="sd">    and files to the GRBL device and monitor its status.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># TODO(evanflynn): init node with machine_id param input or arg</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="s1">&#39;grbl_device&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">get_logger</span><span class="p">()</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Declaring ROS parameters&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">declare_parameters</span><span class="p">(</span>
+            <span class="n">namespace</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+            <span class="n">parameters</span><span class="o">=</span><span class="p">[</span>
+                <span class="p">(</span><span class="s1">&#39;machine_id&#39;</span><span class="p">,</span> <span class="s1">&#39;cnc_001&#39;</span><span class="p">),</span>
+                <span class="p">(</span><span class="s1">&#39;port&#39;</span><span class="p">,</span> <span class="s1">&#39;/dev/ttyUSB0&#39;</span><span class="p">),</span>
+                <span class="p">(</span><span class="s1">&#39;baudrate&#39;</span><span class="p">,</span> <span class="mi">115200</span><span class="p">),</span>
+                <span class="p">(</span><span class="s1">&#39;acceleration&#39;</span><span class="p">,</span> <span class="mi">50</span><span class="p">),</span>  <span class="c1"># mm / min^2</span>
+                <span class="p">(</span><span class="s1">&#39;x_max&#39;</span><span class="p">,</span> <span class="mi">300</span><span class="p">),</span>  <span class="c1"># mm</span>
+                <span class="p">(</span><span class="s1">&#39;y_max&#39;</span><span class="p">,</span> <span class="mi">200</span><span class="p">),</span>  <span class="c1"># mm</span>
+                <span class="p">(</span><span class="s1">&#39;z_max&#39;</span><span class="p">,</span> <span class="mi">150</span><span class="p">),</span>  <span class="c1"># mm</span>
+                <span class="p">(</span><span class="s1">&#39;default_v&#39;</span><span class="p">,</span> <span class="mi">100</span><span class="p">),</span>  <span class="c1"># mm / min</span>
+                <span class="p">(</span><span class="s1">&#39;x_max_v&#39;</span><span class="p">,</span> <span class="mi">150</span><span class="p">),</span>  <span class="c1"># mm / min</span>
+                <span class="p">(</span><span class="s1">&#39;y_max_v&#39;</span><span class="p">,</span> <span class="mi">150</span><span class="p">),</span>  <span class="c1"># mm / min</span>
+                <span class="p">(</span><span class="s1">&#39;z_max_v&#39;</span><span class="p">,</span> <span class="mi">150</span><span class="p">),</span>  <span class="c1"># mm / min</span>
+                <span class="p">(</span><span class="s1">&#39;x_steps&#39;</span><span class="p">,</span> <span class="mi">100</span><span class="p">),</span>  <span class="c1"># mm</span>
+                <span class="p">(</span><span class="s1">&#39;y_steps&#39;</span><span class="p">,</span> <span class="mi">100</span><span class="p">),</span>  <span class="c1"># mm</span>
+                <span class="p">(</span><span class="s1">&#39;z_steps&#39;</span><span class="p">,</span> <span class="mi">100</span><span class="p">),</span>  <span class="c1"># mm</span>
+            <span class="p">])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">machine_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="s1">&#39;machine_id&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">get_parameter_value</span><span class="p">()</span><span class="o">.</span><span class="n">string_value</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">get_logger</span><span class="p">()</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Initializing Publishers &amp; Subscribers&#39;</span><span class="p">)</span>
+        <span class="c1"># Initialize Publishers</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pub_tf_</span> <span class="o">=</span> <span class="n">TransformBroadcaster</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pub_mpos_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_publisher</span><span class="p">(</span><span class="n">Pose</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">machine_id</span> <span class="o">+</span> <span class="s1">&#39;/machine_position&#39;</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pub_wpos_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_publisher</span><span class="p">(</span><span class="n">Pose</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">machine_id</span> <span class="o">+</span> <span class="s1">&#39;/work_position&#39;</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pub_state_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_publisher</span><span class="p">(</span><span class="n">State</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">machine_id</span> <span class="o">+</span> <span class="s1">&#39;/state&#39;</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="c1"># Initialize Services</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">srv_stop_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_service</span><span class="p">(</span>
+            <span class="n">Stop</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">machine_id</span> <span class="o">+</span> <span class="s1">&#39;/stop&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">stopCallback</span><span class="p">)</span>
+        <span class="c1"># Initialize Actions</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">action_done_event</span> <span class="o">=</span> <span class="n">Event</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">callback_group</span> <span class="o">=</span> <span class="n">ReentrantCallbackGroup</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">action_send_gcode_</span> <span class="o">=</span> <span class="n">ActionServer</span><span class="p">(</span>
+                <span class="bp">self</span><span class="p">,</span>
+                <span class="n">SendGcodeCmd</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">machine_id</span> <span class="o">+</span> <span class="s1">&#39;/send_gcode_cmd&#39;</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">gcodeCallback</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">action_send_gcode_file_</span> <span class="o">=</span> <span class="n">ActionServer</span><span class="p">(</span>
+                <span class="bp">self</span><span class="p">,</span>
+                <span class="n">SendGcodeFile</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">machine_id</span> <span class="o">+</span> <span class="s1">&#39;/send_gcode_file&#39;</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">streamCallback</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">action_client_send_gcode_</span> <span class="o">=</span> <span class="n">ActionClient</span><span class="p">(</span>
+                <span class="bp">self</span><span class="p">,</span>
+                <span class="n">SendGcodeCmd</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">machine_id</span> <span class="o">+</span> <span class="s1">&#39;/send_gcode_cmd&#39;</span><span class="p">,</span> <span class="n">callback_group</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">callback_group</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">action_done_event</span> <span class="o">=</span> <span class="n">Event</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">get_logger</span><span class="p">()</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Getting ROS parameters&#39;</span><span class="p">)</span>
+        <span class="n">port</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="s1">&#39;port&#39;</span><span class="p">)</span>
+        <span class="n">baud</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="s1">&#39;baudrate&#39;</span><span class="p">)</span>
+        <span class="n">acc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="s1">&#39;acceleration&#39;</span><span class="p">)</span>    <span class="c1"># axis acceleration (mm/s^2)</span>
+        <span class="n">max_x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="s1">&#39;x_max&#39;</span><span class="p">)</span>           <span class="c1"># workable travel (mm)</span>
+        <span class="n">max_y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="s1">&#39;y_max&#39;</span><span class="p">)</span>           <span class="c1"># workable travel (mm)</span>
+        <span class="n">max_z</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="s1">&#39;x_max&#39;</span><span class="p">)</span>           <span class="c1"># workable travel (mm)</span>
+        <span class="n">default_speed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="s1">&#39;default_v&#39;</span><span class="p">)</span>   <span class="c1"># mm/min</span>
+        <span class="n">speed_x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="s1">&#39;x_max_v&#39;</span><span class="p">)</span>     <span class="c1"># mm/min</span>
+        <span class="n">speed_y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="s1">&#39;y_max_v&#39;</span><span class="p">)</span>     <span class="c1"># mm/min</span>
+        <span class="n">speed_z</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="s1">&#39;z_max_v&#39;</span><span class="p">)</span>     <span class="c1"># mm/min</span>
+        <span class="n">steps_x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="s1">&#39;x_steps&#39;</span><span class="p">)</span>      <span class="c1"># axis steps per mm</span>
+        <span class="n">steps_y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="s1">&#39;y_steps&#39;</span><span class="p">)</span>      <span class="c1"># axis steps per mm</span>
+        <span class="n">steps_z</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="s1">&#39;z_steps&#39;</span><span class="p">)</span>      <span class="c1"># axis steps per mm</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">get_logger</span><span class="p">()</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;  machine_id: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">machine_id</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">get_logger</span><span class="p">()</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;  port:       &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">port</span><span class="o">.</span><span class="n">get_parameter_value</span><span class="p">()</span><span class="o">.</span><span class="n">string_value</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">get_logger</span><span class="p">()</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;  baudrate:   &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">baud</span><span class="o">.</span><span class="n">get_parameter_value</span><span class="p">()</span><span class="o">.</span><span class="n">integer_value</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">get_logger</span><span class="p">()</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Initializing GRBL Device&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">machine</span> <span class="o">=</span> <span class="n">grbl</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">get_logger</span><span class="p">()</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Starting up GRBL Device...&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">machine</span><span class="o">.</span><span class="n">startup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">machine_id</span><span class="p">,</span>
+                             <span class="n">port</span><span class="o">.</span><span class="n">get_parameter_value</span><span class="p">()</span><span class="o">.</span><span class="n">string_value</span><span class="p">,</span>
+                             <span class="n">baud</span><span class="o">.</span><span class="n">get_parameter_value</span><span class="p">()</span><span class="o">.</span><span class="n">integer_value</span><span class="p">,</span>
+                             <span class="n">acc</span><span class="o">.</span><span class="n">get_parameter_value</span><span class="p">()</span><span class="o">.</span><span class="n">integer_value</span><span class="p">,</span>
+                             <span class="n">max_x</span><span class="o">.</span><span class="n">get_parameter_value</span><span class="p">()</span><span class="o">.</span><span class="n">integer_value</span><span class="p">,</span>
+                             <span class="n">max_y</span><span class="o">.</span><span class="n">get_parameter_value</span><span class="p">()</span><span class="o">.</span><span class="n">integer_value</span><span class="p">,</span>
+                             <span class="n">max_z</span><span class="o">.</span><span class="n">get_parameter_value</span><span class="p">()</span><span class="o">.</span><span class="n">integer_value</span><span class="p">,</span>
+                             <span class="n">default_speed</span><span class="o">.</span><span class="n">get_parameter_value</span><span class="p">()</span><span class="o">.</span><span class="n">integer_value</span><span class="p">,</span>
+                             <span class="n">speed_x</span><span class="o">.</span><span class="n">get_parameter_value</span><span class="p">()</span><span class="o">.</span><span class="n">integer_value</span><span class="p">,</span>
+                             <span class="n">speed_y</span><span class="o">.</span><span class="n">get_parameter_value</span><span class="p">()</span><span class="o">.</span><span class="n">integer_value</span><span class="p">,</span>
+                             <span class="n">speed_z</span><span class="o">.</span><span class="n">get_parameter_value</span><span class="p">()</span><span class="o">.</span><span class="n">integer_value</span><span class="p">,</span>
+                             <span class="n">steps_x</span><span class="o">.</span><span class="n">get_parameter_value</span><span class="p">()</span><span class="o">.</span><span class="n">integer_value</span><span class="p">,</span>
+                             <span class="n">steps_y</span><span class="o">.</span><span class="n">get_parameter_value</span><span class="p">()</span><span class="o">.</span><span class="n">integer_value</span><span class="p">,</span>
+                             <span class="n">steps_z</span><span class="o">.</span><span class="n">get_parameter_value</span><span class="p">()</span><span class="o">.</span><span class="n">integer_value</span><span class="p">)</span>
+        <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">machine</span><span class="o">.</span><span class="n">s</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">machine</span><span class="o">.</span><span class="n">getStatus</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">machine</span><span class="o">.</span><span class="n">getSettings</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">get_logger</span><span class="p">()</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Could not detect GRBL device &#39;</span>
+                                   <span class="s1">&#39;on serial port &#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">machine</span><span class="o">.</span><span class="n">port</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">get_logger</span><span class="p">()</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Are you sure the GRBL device &#39;</span>
+                                   <span class="s1">&#39;is connected and powered on?&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">get_logger</span><span class="p">()</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="s1">&#39;[ TIP ] Change the serial port and machine ID parameters&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">get_logger</span><span class="p">()</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="s1">&#39;[ TIP ] in the `grbl_ros/config` yaml file and use it at run-time:&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">get_logger</span><span class="p">()</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="s1">&#39;[ TIP ]   ros2 run grbl_ros grbl_node &#39;</span>
+                <span class="s1">&#39;--ros-args --params-file &lt;path/to/config&gt;.yaml&#39;</span><span class="p">)</span>
+            <span class="c1"># TODO(evanflynn): set this to a different color so it stands out?</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">get_logger</span><span class="p">()</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Node running in `debug` mode&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">get_logger</span><span class="p">()</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;GRBL device operation may not function as expected&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">machine</span><span class="o">.</span><span class="n">mode</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">machine</span><span class="o">.</span><span class="n">MODE</span><span class="o">.</span><span class="n">DEBUG</span>
+
+    <span class="k">def</span> <span class="nf">poseCallback</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">response</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">machine</span><span class="o">.</span><span class="n">moveTo</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">position</span><span class="o">.</span><span class="n">x</span><span class="p">,</span>
+                            <span class="n">request</span><span class="o">.</span><span class="n">position</span><span class="o">.</span><span class="n">y</span><span class="p">,</span>
+                            <span class="n">request</span><span class="o">.</span><span class="n">position</span><span class="o">.</span><span class="n">z</span><span class="p">,</span>
+                            <span class="n">blockUntilComplete</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">response</span>
+
+<div class="viewcode-block" id="grbl_node.gcodeCallback"><a class="viewcode-back" href="../../device.html#grbl_ros.device.grbl_node.gcodeCallback">[docs]</a>    <span class="k">def</span> <span class="nf">gcodeCallback</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">goal_handle</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Send GCODE ROS2 action callback.</span>
+
+<span class="sd">        This is the callback called each time the ROS2 send_gcode_cmd action is called.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">SendGcodeCmd</span><span class="o">.</span><span class="n">Result</span><span class="p">()</span>
+        <span class="n">status</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">machine</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">goal_handle</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">command</span><span class="p">))</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">status</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;error&#39;</span><span class="p">)</span> <span class="o">&gt;</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+            <span class="c1"># grbl device returned error code</span>
+            <span class="c1"># decode error</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">decode_error</span><span class="p">(</span><span class="n">status</span><span class="p">)</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">success</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">elif</span><span class="p">(</span><span class="n">status</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;ok&#39;</span><span class="p">)</span> <span class="o">&gt;</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+            <span class="c1"># grbl device running command</span>
+            <span class="c1"># check state</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">machine</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="s1">&#39;?&#39;</span><span class="p">))</span>
+            <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">machine</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">machine</span><span class="o">.</span><span class="n">STATE</span><span class="o">.</span><span class="n">RUN</span><span class="o">.</span><span class="n">name</span><span class="p">):</span>
+                <span class="c1"># machine still running command</span>
+                <span class="c1"># wait until machine is idle</span>
+                <span class="n">status_msg</span> <span class="o">=</span> <span class="n">SendGcodeCmd</span><span class="o">.</span><span class="n">Feedback</span><span class="p">()</span>
+                <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">machine</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">machine</span><span class="o">.</span><span class="n">STATE</span><span class="o">.</span><span class="n">RUN</span><span class="o">.</span><span class="n">name</span><span class="p">:</span>
+                    <span class="c1"># poll status, publish position</span>
+                    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.01</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">machine</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="s1">&#39;?&#39;</span><span class="p">))</span>
+                    <span class="n">status_msg</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="s1">&#39;Running &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">goal_handle</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">command</span><span class="p">)</span>
+                    <span class="n">goal_handle</span><span class="o">.</span><span class="n">publish_feedback</span><span class="p">(</span><span class="n">status_msg</span><span class="p">)</span>
+            <span class="c1"># elif(self.machine.state.name.upper() == self.machine.STATE.ALARM.name):</span>
+                <span class="c1"># machine alarm is still active</span>
+                <span class="c1"># self.get_logger().warn(&#39;ALARM&#39;)</span>
+            <span class="n">goal_handle</span><span class="o">.</span><span class="n">succeed</span><span class="p">()</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">success</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># grbl device returned unknown</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">get_logger</span><span class="p">()</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="n">status</span><span class="p">)</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">success</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="n">result</span></div>
+
+<div class="viewcode-block" id="grbl_node.streamCallback"><a class="viewcode-back" href="../../device.html#grbl_ros.device.grbl_node.streamCallback">[docs]</a>    <span class="k">def</span> <span class="nf">streamCallback</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">goal_handle</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Send GCODE file ROS2 action callback.</span>
+
+<span class="sd">        This is the callback called each time the ROS2 send_gcode_file action is called</span>
+<span class="sd">        and calls the send_gcode_cmd action for each line in the given file.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">SendGcodeFile</span><span class="o">.</span><span class="n">Result</span><span class="p">()</span>
+        <span class="c1"># open file to read each line</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">goal_handle</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">file_path</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">action_client_send_gcode_</span><span class="o">.</span><span class="n">wait_for_server</span><span class="p">()</span>
+        <span class="n">gcode_msg</span> <span class="o">=</span> <span class="n">SendGcodeCmd</span><span class="o">.</span><span class="n">Goal</span><span class="p">()</span>
+
+        <span class="n">file_length</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">goal_handle</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">file_path</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">))</span>
+        <span class="n">line_num</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">for</span> <span class="n">raw_line</span> <span class="ow">in</span> <span class="n">f</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">action_done_event</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="n">raw_line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>  <span class="c1"># strip all EOL characters for consistency</span>
+            <span class="n">gcode_msg</span><span class="o">.</span><span class="n">command</span> <span class="o">=</span> <span class="n">line</span>
+            <span class="n">status_msg</span> <span class="o">=</span> <span class="n">SendGcodeFile</span><span class="o">.</span><span class="n">Feedback</span><span class="p">()</span>
+            <span class="c1"># send gcode line to action server</span>
+            <span class="n">send_goal_future</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_client_send_gcode_</span><span class="o">.</span><span class="n">send_goal_async</span><span class="p">(</span>
+                    <span class="n">gcode_msg</span><span class="p">,</span> <span class="n">feedback_callback</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">file_feedback</span><span class="p">)</span>
+            <span class="n">send_goal_future</span><span class="o">.</span><span class="n">add_done_callback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">line_response_callback</span><span class="p">)</span>
+            <span class="c1"># wait for send gcode action to be done</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">action_done_event</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
+
+            <span class="n">status_msg</span> <span class="o">=</span> <span class="n">SendGcodeFile</span><span class="o">.</span><span class="n">Feedback</span><span class="p">()</span>
+
+            <span class="c1"># dont send another line until its done running</span>
+            <span class="n">status_msg</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="s1">&#39;[ &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">line_num</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; / &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">file_length</span><span class="p">)</span> <span class="o">+</span> \
+                <span class="s1">&#39; ] Running &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+            <span class="n">goal_handle</span><span class="o">.</span><span class="n">publish_feedback</span><span class="p">(</span><span class="n">status_msg</span><span class="p">)</span>
+            <span class="n">line_num</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="n">goal_handle</span><span class="o">.</span><span class="n">succeed</span><span class="p">()</span>
+        <span class="n">result</span><span class="o">.</span><span class="n">success</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="n">result</span></div>
+
+<div class="viewcode-block" id="grbl_node.file_feedback"><a class="viewcode-back" href="../../device.html#grbl_ros.device.grbl_node.file_feedback">[docs]</a>    <span class="k">def</span> <span class="nf">file_feedback</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">feedback</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Feedback function during the send_gcode_file ROS2 aciton.</span>
+
+<span class="sd">        This feedback callback can be called during the send_gcode_file in order to provide</span>
+<span class="sd">        feedback to the user as the ROS2 action is executed.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># self.get_logger().info(&#39;received feedback&#39;)</span>
+        <span class="k">return</span></div>
+
+    <span class="k">def</span> <span class="nf">line_response_callback</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">future</span><span class="p">):</span>
+        <span class="n">goal_handle</span> <span class="o">=</span> <span class="n">future</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
+        <span class="n">get_result_future</span> <span class="o">=</span> <span class="n">goal_handle</span><span class="o">.</span><span class="n">get_result_async</span><span class="p">()</span>
+        <span class="n">get_result_future</span><span class="o">.</span><span class="n">add_done_callback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_result_callback</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">get_result_callback</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">future</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">action_done_event</span><span class="o">.</span><span class="n">set</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">stopCallback</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">response</span><span class="p">):</span>
+        <span class="c1"># stop steppers</span>
+        <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">data</span> <span class="o">==</span> <span class="s1">&#39;s&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">machine</span><span class="o">.</span><span class="n">disableSteppers</span><span class="p">()</span>
+            <span class="c1"># fire steppers</span>
+        <span class="k">elif</span> <span class="n">request</span><span class="o">.</span><span class="n">data</span> <span class="o">==</span> <span class="s1">&#39;f&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">machine</span><span class="o">.</span><span class="n">enableSteppers</span><span class="p">()</span></div>
+
+
+<span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">args</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="n">rclpy</span><span class="o">.</span><span class="n">init</span><span class="p">(</span><span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">)</span>
+    <span class="n">node</span> <span class="o">=</span> <span class="n">grbl_node</span><span class="p">()</span>
+    <span class="n">executor</span> <span class="o">=</span> <span class="n">MultiThreadedExecutor</span><span class="p">()</span>
+    <span class="n">rclpy</span><span class="o">.</span><span class="n">spin</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">executor</span><span class="p">)</span>
+    <span class="n">rclpy</span><span class="o">.</span><span class="n">shutdown</span><span class="p">()</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">grbl_ros</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../device.html">device</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../init.html">__init__</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../command.html">_command</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../control.html">_control</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../configure.html">_configure</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../logging.html">_logging</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
