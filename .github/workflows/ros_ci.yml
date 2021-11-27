@@ -28,13 +28,13 @@ jobs:
       image: ${{ matrix.docker_image }}
     steps:
       - name: setup directories
-        run: mkdir -p ros_ws/src
+        run: mkdir -p ros_ws/src/grbl_ros
       - name: checkout
         uses: actions/checkout@v2
         with:
-          path: ros_ws/src
+          path: ros_ws/src/grbl_ros
       - name: install dependencies
-        run: "pip3 install -r ros_ws/src/requirements.txt"
+        run: "pip3 install -r ros_ws/src/grbl_ros/requirements.txt"
       - name: build and test
         uses: ros-tooling/action-ros-ci@master
         with:
