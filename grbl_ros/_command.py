@@ -167,7 +167,7 @@ class command(object):
                 'Received status from machine does not have required fields')
             self.node.get_logger().warn(
                 'Status should always include machine state and current position')
-            self.node.get_logger().warn('Received: %s'.format(status))
+            self.node.get_logger().warn('Received: %s'.format(str(status)))
 
     def handle_current_pose(self, pose):
         transforms = []
