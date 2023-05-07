@@ -1,14 +1,14 @@
 from glob import glob
 import os
 
-import setuptools
+from setuptools import find_packages, setup
 
 package_name = 'grbl_ros'
 
-setuptools.setup(
+setup(
     name=package_name,
-    version='0.0.16',
-    packages=[package_name],
+    version='0.1.0',
+    packages=find_packages(exclude=['test']),
     data_files=[
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
