@@ -25,7 +25,6 @@ from geometry_msgs.msg import Pose
 from grbl_msgs.action import SendGcodeCmd, SendGcodeFile
 from grbl_msgs.msg import State
 from grbl_msgs.srv import Stop
-from grbl_ros import grbl
 
 import rclpy
 from rclpy.action import ActionClient, ActionServer
@@ -35,6 +34,10 @@ from rclpy.executors import MultiThreadedExecutor
 from rclpy.node import Node
 
 from tf2_ros.transform_broadcaster import TransformBroadcaster
+
+from grbl_ros.models.common import VectorXYZ
+from grbl_ros.models.connectors.uart import UART
+from grbl_ros.models.grbl import GrblConfig, GrblDevice
 
 
 class grbl_node(Node):
@@ -47,115 +50,106 @@ class grbl_node(Node):
 
     """
 
-    def __init__(self):
+    def __init__(self, node_name: str):
         # TODO(evanflynn): init node with machine_id param input or arg
-        super().__init__('grbl_device')
+        super().__init__(node_name)
 
-        self.get_logger().info('Declaring ROS parameters')
+        # Initialize the GRBL device objects
+        self.device = GrblDevice()
+
+        self.get_logger().info("Declaring ROS parameters")
         self.declare_parameters(
-            namespace='',
+            namespace="",
             parameters=[
-                ('machine_id', 'cnc_001'),
-                ('port', '/dev/ttyUSB0'),
-                ('baudrate', 115200),
-                ('acceleration', 50),  # mm / min^2
-                ('x_max', 300),  # mm
-                ('y_max', 200),  # mm
-                ('z_max', 150),  # mm
-                ('default_v', 100),  # mm / min
-                ('x_max_v', 150),  # mm / min
-                ('y_max_v', 150),  # mm / min
-                ('z_max_v', 150),  # mm / min
-                ('x_steps', 100),  # mm
-                ('y_steps', 100),  # mm
-                ('z_steps', 100),  # mm
+                ("machine_id", "cnc_001"),
+                ("port", "/dev/ttyUSB0"),
+                ("baudrate", 115200),
+                ("timeout", 5),   # seconds
+                ("acceleration", 50),  # mm / min^2
+                ("x_max", 300),  # mm
+                ("y_max", 200),  # mm
+                ("z_max", 150),  # mm
+                ("default_v", 100),  # mm / min
+                ("x_max_v", 150),  # mm / min
+                ("y_max_v", 150),  # mm / min
+                ("z_max_v", 150),  # mm / min
+                ("x_steps", 100),  # mm
+                ("y_steps", 100),  # mm
+                ("z_steps", 100),  # mm
             ])
 
-        self.machine_id = self.get_parameter('machine_id').get_parameter_value().string_value
+        # Update the parameters if any are available
+        self.get_params()
+
         self.get_logger().info('Initializing Publishers & Subscribers')
         # Initialize Publishers
         self.pub_tf_ = TransformBroadcaster(self)
-        self.pub_mpos_ = self.create_publisher(Pose, self.machine_id + '/machine_position', 5)
-        self.pub_wpos_ = self.create_publisher(Pose, self.machine_id + '/work_position', 5)
-        self.pub_state_ = self.create_publisher(State, self.machine_id + '/state', 5)
+        self.pub_mpos_ = self.create_publisher(Pose, self.device.id + '/machine_position', 5)
+        self.pub_wpos_ = self.create_publisher(Pose, self.device.id + '/work_position', 5)
+        self.pub_state_ = self.create_publisher(State, self.device.id + '/state', 5)
         # Initialize Services
         self.srv_stop_ = self.create_service(
-            Stop, self.machine_id + '/stop', self.stopCallback)
+            Stop, self.device.id + '/stop', self.stopCallback)
         # Initialize Actions
         self.action_done_event = Event()
         self.callback_group = ReentrantCallbackGroup()
         self.action_send_gcode_ = ActionServer(
                 self,
                 SendGcodeCmd,
-                self.machine_id + '/send_gcode_cmd',
+                self.device.id + '/send_gcode_cmd',
                 self.gcodeCallback)
         self.action_send_gcode_file_ = ActionServer(
                 self,
                 SendGcodeFile,
-                self.machine_id + '/send_gcode_file',
+                self.device.id + '/send_gcode_file',
                 self.streamCallback)
         self.action_client_send_gcode_ = ActionClient(
                 self,
                 SendGcodeCmd,
-                self.machine_id + '/send_gcode_cmd', callback_group=self.callback_group)
+                self.device.id + '/send_gcode_cmd', callback_group=self.callback_group)
 
         self.action_done_event = Event()
 
-        self.get_logger().info('Getting ROS parameters')
-        port = self.get_parameter('port')
-        baud = self.get_parameter('baudrate')
-        acc = self.get_parameter('acceleration')    # axis acceleration (mm/s^2)
-        max_x = self.get_parameter('x_max')           # workable travel (mm)
-        max_y = self.get_parameter('y_max')           # workable travel (mm)
-        max_z = self.get_parameter('x_max')           # workable travel (mm)
-        default_speed = self.get_parameter('default_v')   # mm/min
-        speed_x = self.get_parameter('x_max_v')     # mm/min
-        speed_y = self.get_parameter('y_max_v')     # mm/min
-        speed_z = self.get_parameter('z_max_v')     # mm/min
-        steps_x = self.get_parameter('x_steps')      # axis steps per mm
-        steps_y = self.get_parameter('y_steps')      # axis steps per mm
-        steps_z = self.get_parameter('z_steps')      # axis steps per mm
+        self.get_logger().warn('  machine_id: ' + str(self.device.id))
+        self.get_logger().warn('  port:       ' + str(self.device.connection.port))
+        self.get_logger().warn('  baudrate:   ' + str(self.device.connection.baudrate))
 
-        self.get_logger().warn('  machine_id: ' + str(self.machine_id))
-        self.get_logger().warn('  port:       ' + str(port.get_parameter_value().string_value))
-        self.get_logger().warn('  baudrate:   ' + str(baud.get_parameter_value().integer_value))
-
-        self.get_logger().info('Initializing GRBL Device')
-        self.machine = grbl(self)
         self.get_logger().info('Starting up GRBL Device...')
-        self.machine.startup(self.machine_id,
-                             port.get_parameter_value().string_value,
-                             baud.get_parameter_value().integer_value,
-                             acc.get_parameter_value().integer_value,
-                             max_x.get_parameter_value().integer_value,
-                             max_y.get_parameter_value().integer_value,
-                             max_z.get_parameter_value().integer_value,
-                             default_speed.get_parameter_value().integer_value,
-                             speed_x.get_parameter_value().integer_value,
-                             speed_y.get_parameter_value().integer_value,
-                             speed_z.get_parameter_value().integer_value,
-                             steps_x.get_parameter_value().integer_value,
-                             steps_y.get_parameter_value().integer_value,
-                             steps_z.get_parameter_value().integer_value)
-        if(self.machine.s):
-            self.machine.getStatus()
-            self.machine.getSettings()
-        else:
-            self.get_logger().warn('Could not detect GRBL device '
-                                   'on serial port ' + self.machine.port)
-            self.get_logger().warn('Are you sure the GRBL device '
-                                   'is connected and powered on?')
-            self.get_logger().warn(
-                '[ TIP ] Change the serial port and machine ID parameters')
-            self.get_logger().warn(
-                '[ TIP ] in the `grbl_ros/config` yaml file and use it at run-time:')
-            self.get_logger().warn(
-                '[ TIP ]   ros2 run grbl_ros grbl_node '
-                '--ros-args --params-file <path/to/config>.yaml')
-            # TODO(evanflynn): set this to a different color so it stands out?
-            self.get_logger().info('Node running in `debug` mode')
-            self.get_logger().info('GRBL device operation may not function as expected')
-            self.machine.mode = self.machine.MODE.DEBUG
+        self.device.get_status()
+        self.device.get_settings()
+
+    def get_params(self):
+        """Get the GRBL parameters and update the members with them."""
+        self.get_logger().info('Getting ROS parameters')
+        self.device.id = self.get_str_param('machine_id')
+
+        connection = UART(
+            port = self.get_str_param("port"),
+            baudrate = self.get_int_param("baudrate"),
+            timeout = self.get_int_param("timeout"),
+        )
+        self.device.connection = connection
+
+        config = GrblConfig(
+            acceleration = self.get_int_param("acceleration"),
+            max_travel = VectorXYZ(
+              x = self.get_int_param("x_max"),
+              y = self.get_int_param("y_max"),
+              z = self.get_int_param("z_max"),
+            ),
+            default_speed = self.get_int_param("default_v"),
+            max_speed = VectorXYZ(
+              x = self.get_int_param("x_max_v"),
+              y = self.get_int_param("y_max_v"),
+              z = self.get_int_param("z_max_v"),
+            ),
+            steps_per_mm = VectorXYZ(
+              x = self.get_int_param("x_steps"),
+              y = self.get_int_param("y_steps"),
+              z = self.get_int_param("z_steps"),
+            )
+        )
+        self.device.config = config
 
     def poseCallback(self, request, response):
         self.machine.moveTo(request.position.x,
@@ -271,15 +265,21 @@ class grbl_node(Node):
             # fire steppers
         elif request.data == 'f':
             self.machine.enableSteppers()
+    
+    def get_int_param(self, param_name: str) -> int:
+        return self.get_parameter(param_name).get_parameter_value().integer_value
 
+    def get_str_param(self, param_name: str) -> str:
+        return self.get_parameter(param_name).get_parameter_value().string_value
 
 def main(args=None):
     rclpy.init(args=args)
-    node = grbl_node()
+    # TODO(flynneva): make this a CLI arg
+    node = grbl_node("grbl_device")
     executor = MultiThreadedExecutor()
     rclpy.spin(node, executor)
     rclpy.shutdown()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
